@@ -1,9 +1,20 @@
-h1 {
+h1,
+h2,
+h3 {
     font-family: Lato;
 }
 
 img {
     border-radius: 5px;
+}
+
+.social-icon {
+    width: 48px;
+    padding: 0 10px 0 10px;
+}
+
+#social-container {
+    text-align: center;
 }
 
 #profile-picture {
