@@ -12,17 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/**
- * Adds a random greeting to the page.
- */
-function addRandomGreeting() {
-  const greetings =
-      ['Hello world!', '¡Hola Mundo!', '你好，世界！', 'Bonjour le monde!'];
-
-  // Pick a random greeting.
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-
-  // Add it to the page.
-  const greetingContainer = document.getElementById('greeting-container');
-  greetingContainer.innerText = greeting;
+//dictionary of all the facts that can be pulled up
+const facts = {
+    movies: ["V for Vendetta", "Monty Python and the Holy Grail", "Lord of the Rings (all of 'em)"],
+    shows: ["Seinfeld", "Star Trek: DS9", "The Mandalorian", "Night on Earth"],
+    food: ["Sushi", "Pizza", "Yogurt", "Bacon", "Lasagna", "50¢ Walmart Pies"],
 }
+
+/* Returns a (pseudo)random element of the given array */
+function randomElement(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/* Merge all the lists in the dictionary facts into one list */
+function mergeLists() {
+    let out = [];
+
+    Object.keys(facts).forEach(key => {
+        out = out.concat(facts[key]);
+    });
+
+    return out;
+}
+
+function generateFact() {
+    let dropdown = document.getElementById("type");
+    let selection = dropdown.options[dropdown.selectedIndex].value;
+    let options;
+
+    /* Check if we need to merge all lists */
+    if (selection === "all") {
+        options = mergeLists();
+    } else {
+        options = facts[selection];
+    }
+
+    let fact = randomElement(options);
+
+    // Add it to the page.
+    let container = document.getElementById("fact-container");
+    container.innerText = fact;
+}
+
