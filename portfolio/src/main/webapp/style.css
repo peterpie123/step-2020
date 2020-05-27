@@ -4,8 +4,13 @@ h3 {
     font-family: Lato;
 }
 
-img {
+img,
+video {
     border-radius: 5px;
+}
+
+body {
+    margin: 0;
 }
 
 .mickey-media {
@@ -32,6 +37,33 @@ img {
   font-family: Roboto;
 }
 
-#greeting-container {
-  margin-top: 20px;
+#nav-list {
+    background-color: #b2b2b7;
+    overflow: hidden;
+    margin: 0;
+}
+
+#nav-bar a {
+    font-family: Roboto;
+    padding: 10px;
+    text-decoration: none;
+    display: block;
+}
+
+.nav-item {
+    display: inline;
+    float: left;
+}
+
+.nav-active {
+    background-color: black;
+    color: white;
+}
+
+.nav-inactive {
+    color: black;
+}
+
+.nav-item a:hover {
+    background-color: #468887;
 }
