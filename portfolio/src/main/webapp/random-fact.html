@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Random Facts | Peter Geertsema's Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="nav-bar">
+      <ul id="nav-list">
+        <li class="nav-item"><a class="nav-inactive" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-inactive" href="mickey.html">Mickey</a></li>
+        <li class="nav-item"><a class="nav-inactive" href="projects.html">Projects</a></li>
+        <li class="nav-item"><a class="nav-active" href="random-fact.html">Random Facts</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <h1>Pull up random facts about me!</h1>
+      <p>Please choose a category and press the button below to pull it up!</p>
+
+      <label for="type">Choose a category:</label>
+      <select name="type" id="type">
+        <option value="all">All</option>
+        <option value="shows">Shows</option>
+        <option value="movies">Movies</option>
+        <option value="food">Food</option>
+      </select>
+      <button onclick="generateFact()">Generate fact!</button>
+    
+      <p id="fact-container"></p>
+
+      <div id="social-container">
+        <hr/>
+        <a href="https://github.com/peterpie123"><img class="social-icon" src="images/GitHub Mark.png"/></a>
+        <a href="https://www.linkedin.com/in/peter-geertsema/"><img class="social-icon" src="images/LinkedIn Logo.png"/></a>
+      </div>
+    </div>
+  </body>
+</html>
