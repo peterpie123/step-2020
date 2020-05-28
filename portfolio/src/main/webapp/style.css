@@ -80,3 +80,11 @@ input {
     background-color: #468887;
     border-radius: 5px;
 }
+
+#sidebar {
+  float: right;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 50px 50px 0 0;
+}
