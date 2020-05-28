@@ -17,6 +17,7 @@ const facts = {
     movies: ["V for Vendetta", "Monty Python and the Holy Grail", "Lord of the Rings (all of 'em)"],
     shows: ["Seinfeld", "Star Trek: DS9", "The Mandalorian", "Night on Earth"],
     food: ["Sushi", "Pizza", "Yogurt", "Bacon", "Lasagna", "50¢ Walmart Pies"],
+    videoGames: ["Civ 5", "Portal 2", "Kerbal Space Program", "Skyrim"],
 }
 
 /* Returns a (pseudo)random element of the given array */
