@@ -17,7 +17,12 @@ video {
     border-radius: 5px;
 }
 
-
+button,
+select,
+input {
+    border-radius: 3px;
+    border: 1px solid black;
+}
 
 .mickey-media {
     width: 400px;
