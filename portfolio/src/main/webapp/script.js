@@ -29,12 +29,9 @@ var userFavorites = new Set();
 document.addEventListener("DOMContentLoaded", init);
 /* Called when DOM is loaded, performing necessary setup */
 function init() {
-    //simulate a button click when the user types enter in the agree box
+    //Populate from built-in favorites automatically when typing
     document.getElementById("agree-field").addEventListener("keyup", e => {
-        //13 is the enter key
-        if (e.keyCode === 13) {
-            checkAgree();
-        }
+        checkAgree();
     });
 }
 
@@ -54,7 +51,13 @@ function mergeLists() {
     return out;
 }
 
-/* Handles adding the apropriate HTML when adding a new favorite*/
+/* Called when the user wants to add the contents of agree-field to their favorites */
+function processNewFavorite() {
+    let textbox = document.getElementById("agree-field");
+    addUserFavorite(textbox.value);
+}
+
+/* Handles adding the apropriate HTML when adding a new favorite */
 function addUserFavorite(favorite) {
     //Only add if we need to
     if(!userFavorites.has(favorite)) {
@@ -137,12 +140,6 @@ function generateFact() {
     container.innerText = fact;
 }
 
-/* Sets the value of the agree-field textbox to the given value */
-function setAgree(value) {
-    let textbox = document.getElementById("agree-field");
-    textbox.value = value;
-}
-
 /* Checks user input against all the facts that have been input */
 function checkAgree() {
     let textbox = document.getElementById("agree-field");
@@ -159,9 +156,8 @@ function checkAgree() {
 
         //Show the user each possibilty and attach a listener to auto-populate the textbox
         if(substrings.length > 0) {
-            output += "<br/>Tip: try clicking one of following options!\n"
-            output += "<br/><i>Did you mean:</i>\n";
-            
+            output += `<br/>Tip: These are some of my favorites. Clicking on one 
+                       will favorite it for you too!\n`            
             output += "<ul>\n"
 
             for(let i = 0; i < substrings.length; i++) {
@@ -172,10 +168,9 @@ function checkAgree() {
 
             output += "</ul>"
         } else {
-            output = `No match. Please try again!`;
+            output = `No match here. Try another search or add this to your favorites!`;
         }
     }
-
 
     let container = document.getElementById("agree-container");
     container.innerHTML = output;
