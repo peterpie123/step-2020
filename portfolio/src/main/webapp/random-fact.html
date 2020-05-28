@@ -18,10 +18,9 @@
     </div>
 
     <div id="sidebar">
-      <input type="text" placeholder="Chicken"/>
-      <ul>
-        <li>Placeholder 1</li>
-        <li>Placeholder 2</li>
+      <button onclick="removeUserFavorites()">Remove</button>
+      <ul id="fav-list">
+        <li id="fav-placeholder">You haven't favorited any items yet! </li>
       </ul>
     </div>
 
@@ -46,7 +45,7 @@
 
       <label for="agree-field">Choose a favorite:</label>
       <br/>
-      <input type="text" id="agree-field" name="agree-field"/>
+      <input type="text" id="agree-field" name="agree-field" placeholder="Pizza"/>
       <button id="agree-button" onclick="checkAgree()">Check if we agree!</button>
       
       <div id="agree-container"></div>

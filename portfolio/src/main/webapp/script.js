@@ -14,7 +14,7 @@
 
 //dictionary of all the facts that can be pulled up
 const facts = {
-    movies: ["V for Vendetta", "Monty Python and the Holy Grail", "Lord of the Rings (all of 'em)"],
+    movies: ["V for Vendetta", "Monty Python and the Holy Grail", "Lord of the Rings (all of them)"],
     shows: ["Seinfeld", "Star Trek: DS9", "The Mandalorian", "Night on Earth"],
     food: ["Sushi", "Pizza", "Yogurt", "Bacon", "Lasagna", "50¢ Walmart Pies"],
     videoGames: ["Civ 5", "Portal 2", "Kerbal Space Program", "Skyrim"],
@@ -23,6 +23,8 @@ const facts = {
 const factsArr = mergeLists();
 //lowercase array of the facts
 const factsArrLowerCase = factsArr.map(v => v.toLowerCase());
+//store what the user favorites
+var userFavorites = new Set();
 
 document.addEventListener("DOMContentLoaded", init);
 /* Called when DOM is loaded, performing necessary setup */
@@ -50,6 +52,53 @@ function mergeLists() {
     });
 
     return out;
+}
+
+/* Handles adding the apropriate HTML when adding a new favorite*/
+function addUserFavorite(favorite) {
+    //Only add if we need to
+    if(!userFavorites.has(favorite)) {
+        //if this is the first favorite, need to remove the placeholder
+        if(userFavorites.size === 0) {
+            document.getElementById("fav-placeholder").remove();
+        }
+
+        userFavorites.add(favorite);
+
+        let listTag = document.createElement("li");
+        listTag.innerHTML = `<input type="checkbox"/>${favorite}`
+
+        document.getElementById("fav-list").appendChild(listTag);
+    }
+}
+
+/* Handles removing all the entries with checkboxes ticked */
+function removeUserFavorites() {
+    let list = document.getElementById("fav-list");
+
+    //look through all list elements for checked boxes
+    //iterate backwards as this list is live, so we avoid needing to adjust the index
+    for(let i = list.childNodes.length - 1; i >= 0; i--) {
+        let node = list.childNodes[i];
+
+        //if this item's checkbox is ticked, remove it
+        if(node.hasChildNodes() && node.firstChild.checked) {
+            userFavorites.delete(node.innerText);
+            node.remove();
+        }
+    }
+
+    //hasChildNodes isn't working since there's whitespace treated as text by the DOM,
+    //so instead check if there is any non-whitespace left
+    if(list.innerHTML.trim() === "") {
+        //add placeholder message
+        let listTag = document.createElement("li");
+        listTag.id = "fav-placeholder";
+        listTag.innerText = "You haven't favorited any items yet!";
+
+        list.appendChild(listTag);
+    }
+
 }
 
 /* Finds all occurances of substring in the values of arr and returns a list containing
@@ -116,9 +165,8 @@ function checkAgree() {
             output += "<ul>\n"
 
             for(let i = 0; i < substrings.length; i++) {
-                //cal the setAgree function, which will set the value of the agree textbox
-                //to the value clicked
-                output += `<li onclick="setAgree('${substrings[i]}')">${substrings[i]}</li>\n`;
+                //On click add the item to the users' favorite list
+                output += `<li onclick="addUserFavorite('${substrings[i]}')">${substrings[i]}</li>\n`;
             }
                 
 
