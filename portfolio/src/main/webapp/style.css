@@ -97,3 +97,8 @@ input {
 #fav-list li {
     display: block;
 }
+
+#agree-container li:hover {
+    cursor: pointer;
+    color: #468887;
+}

@@ -32,6 +32,11 @@ function init() {
     //Populate from built-in favorites automatically when typing
     document.getElementById("agree-field").addEventListener("keyup", e => {
         checkAgree();
+        
+        //13 is enter
+        if(e.keyCode == 13) {
+            processNewFavorite();
+        }
     });
 }
 
