@@ -94,7 +94,7 @@ input {
     margin: 8px;
 }
 
-#fav-list li {
+#fav-list label {
     display: block;
 }
 

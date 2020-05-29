@@ -144,10 +144,10 @@ function addUserFavorite(favorite) {
 
     userFavorites.add(favorite);
 
-    let listTag = document.createElement('li');
-    listTag.innerHTML = `<input type="checkbox"/>${favorite}`
+    let labelTag = document.createElement('label');
+    labelTag.innerHTML = `<input type="checkbox"/>${favorite}`
 
-    document.getElementById('fav-list').appendChild(listTag);
+    document.getElementById('fav-list').appendChild(labelTag);
   }
 }
 
@@ -171,7 +171,7 @@ function removeUserFavorites() {
   //so instead check if there is any non-whitespace left
   if (list.innerHTML.trim() === '') {
     //add placeholder message
-    let listTag = document.createElement('li');
+    let listTag = document.createElement('p');
 
     listTag.id = 'fav-placeholder';
     listTag.innerText = `You haven't favorited any items yet!`;
