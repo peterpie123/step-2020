@@ -12,13 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//Code corresponding to the enter key in a key event
+const ENTER_CODE = 13;
+//ID of the dropdown where the user picks which category to pull favorites from
+const FAVORITE_CATEGORY_ID = 'type'
+//User selection indicating that a random item should be pulled from the merged lists
+const MERGE_ALL_LISTS = 'all';
+//ID of where the randomly generated fact is sent
+const RANDOM_FACT_OUTPUT_ID = 'fact-container';
+//ID of the field that the user puts their favorites in
+const USER_FAVORITE_INPUT_ID = 'agree-field';
+//ID of the div where favorite search results are put
+const FAVORITE_SEARCH_RESULT_ID = 'agree-container';
+//ID of the sidebar where user-selected favorites go
+const USER_FAVORITE_LIST_ID = 'fav-list';
+//ID of the placeholder text in the favorites are when there are no favorites selected
+const FAVORITE_PLACEHOLDER_ID = 'fav-placeholder';
+
+
 //dictionary of all the facts that can be pulled up
 const FACTS = {
-  movies: ["V for Vendetta", "Monty Python and the Holy Grail", 
-           "Lord of the Rings (all of them)"],
-  shows: ["Seinfeld", "Star Trek: DS9", "The Mandalorian", "Night on Earth"],
-  food: ["Sushi", "Pizza", "Yogurt", "Bacon", "Lasagna", "50¢ Walmart Pies"],
-  videoGames: ["Civ 5", "Portal 2", "Kerbal Space Program", "Skyrim"],
+  movies: ['V for Vendetta', 'Monty Python and the Holy Grail', 
+           'Lord of the Rings (all of them)'],
+  shows: ['Seinfeld', 'Star Trek: DS9', 'The Mandalorian', 'Night on Earth'],
+  food: ['Sushi', 'Pizza', 'Yogurt', 'Bacon', 'Lasagna', '50¢ Walmart Pies'],
+  videoGames: ['Civ 5', 'Portal 2', 'Kerbal Space Program', 'Skyrim'],
 }
 //array of all the facts, pulled from above
 const FACTS_ARR = mergeLists();
@@ -28,13 +46,12 @@ const FACTS_ARR_LC = FACTS_ARR.map(v => v.toLowerCase());
 let userFavorites = new Set();
 
 //perform necessary setup
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   //Populate from built-in favorites automatically when typing
-  document.getElementById("agree-field").addEventListener("keyup", e => {
+  document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
     checkAgree();
 
-    //13 is enter
-    if (e.keyCode == 13) {
+    if (e.key == ENTER_CODE) {
       processNewFavorite();
     }
   });
@@ -70,14 +87,14 @@ function findSubstrings(arr, substring) {
   return out;
 }
 
-/* Put a random fact from the given list in the fact-container */
+/* Put a random fact from the given list into the appropriate container */
 function generateFact() {
-  let dropdown = document.getElementById('type');
+  let dropdown = document.getElementById(FAVORITE_CATEGORY_ID);
   let selection = dropdown.options[dropdown.selectedIndex].value;
   let options;
 
   /* Check if we need to merge all lists */
-  if (selection === "all") {
+  if (selection === MERGE_ALL_LISTS) {
     options = FACTS_ARR;
   } else {
     options = FACTS[selection];
@@ -85,14 +102,14 @@ function generateFact() {
 
   let fact = randomElement(options);
   // Add fact to the page.
-  let container = document.getElementById('fact-container');
+  let container = document.getElementById(RANDOM_FACT_OUTPUT_ID);
   container.innerText = fact;
 }
 
 /* Checks user input against all the facts above and shows options similar
  * what they typed. */
 function checkAgree() {
-  let textbox = document.getElementById('agree-field');
+  let textbox = document.getElementById(USER_FAVORITE_INPUT_ID);
   let input = textbox.value;
   //the value being put in the agree container
   let output = '';
@@ -122,14 +139,13 @@ function checkAgree() {
     }
   }
 
-  let container = document.getElementById('agree-container');
+  let container = document.getElementById(FAVORITE_SEARCH_RESULT_ID);
   container.innerHTML = output;
 }
 
-/* Called when the user wants to add the contents of agree-field 
- * to their favorites */
+/* Called when the user wants to add to their favorites */
 function processNewFavorite() {
-  let textbox = document.getElementById("agree-field");
+  let textbox = document.getElementById(USER_FAVORITE_INPUT_ID);
   addUserFavorite(textbox.value);
 }
 
@@ -139,7 +155,7 @@ function addUserFavorite(favorite) {
   if (!userFavorites.has(favorite)) {
     //if this is the first favorite, need to remove the placeholder
     if (userFavorites.size === 0) {
-      document.getElementById('fav-placeholder').remove();
+      document.getElementById(FAVORITE_PLACEHOLDER_ID).remove();
     }
 
     userFavorites.add(favorite);
@@ -147,13 +163,13 @@ function addUserFavorite(favorite) {
     let labelTag = document.createElement('label');
     labelTag.innerHTML = `<input type="checkbox"/>${favorite}`
 
-    document.getElementById('fav-list').appendChild(labelTag);
+    document.getElementById(USER_FAVORITE_LIST_ID).appendChild(labelTag);
   }
 }
 
 /* Handles removing all the entries with checkboxes ticked */
 function removeUserFavorites() {
-  let list = document.getElementById('fav-list');
+  let list = document.getElementById(USER_FAVORITE_LIST_ID);
 
   //look through all list elements for checked boxes
   //iterate backwards as this list is live, so we avoid needing to adjust the index
@@ -173,7 +189,7 @@ function removeUserFavorites() {
     //add placeholder message
     let listTag = document.createElement('p');
 
-    listTag.id = 'fav-placeholder';
+    listTag.id = FAVORITE_PLACEHOLDER_ID;
     listTag.innerText = `You haven't favorited any items yet!`;
     list.appendChild(listTag);
   }
