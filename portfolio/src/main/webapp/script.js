@@ -12,41 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//Code corresponding to the enter key in a key event
+// Code corresponding to the enter key in a key event
 const ENTER_CODE = 13;
-//ID of the dropdown where the user picks which category to pull favorites from
+// ID of the dropdown where the user picks which category to pull favorites from
 const FAVORITE_CATEGORY_ID = 'type'
-//User selection indicating that a random item should be pulled from the merged lists
+// User selection indicating that a random item should be pulled from the merged lists
 const MERGE_ALL_LISTS = 'all';
-//ID of where the randomly generated fact is sent
+// ID of where the randomly generated fact is sent
 const RANDOM_FACT_OUTPUT_ID = 'fact-container';
-//ID of the field that the user puts their favorites in
+// ID of the field that the user puts their favorites in
 const USER_FAVORITE_INPUT_ID = 'agree-field';
-//ID of the div where favorite search results are put
+// ID of the div where favorite search results are put
 const FAVORITE_SEARCH_RESULT_ID = 'agree-container';
-//Message shown when the user's favorite is the same as one given here
+// Message shown when the user's favorite is the same as one given here
 const FAVORITE_EXACT_MATCH = 'Exact match!';
-//Message shown when the user's favorite is not similar to any here
+// Message shown when the user's favorite is not similar to any here
 const FAVORITE_NO_MATCH = 'No match here. Try another search or add this to your favorites!';
-//Message prompting users to click on one of the favorite links
+// Message prompting users to click on one of the favorite links
 const FAVORITE_SEARCH_TIP = 'Tip: These are some of my favorites. Clicking on one'
                              + ' will favorite it for you too!'
-//ID of the list containing all the search results from favorite search
+// ID of the list containing all the search results from favorite search
 const FAVORITE_SEARCH_RESULT_LIST_ID = 'fav-search-list';
-//ID of the sidebar where user-selected favorites go
+// ID of the sidebar where user-selected favorites go
 const USER_FAVORITE_LIST_ID = 'fav-list';
-//ID of the placeholder text in the favorites are when there are no favorites selected
+// ID of the placeholder text in the favorites are when there are no favorites selected
 const FAVORITE_PLACEHOLDER_ID = 'fav-placeholder';
-//Text in the favorite placeholder
+// Text in the favorite placeholder
 const FAVORITE_PLACEHOLDER_TEXT = `You haven't favorited any items yet!`;
-//Tag for creating a single checkbox in HTML
+// Tag for creating a single checkbox in HTML
 const HTML_CHECKBOX_TAG = '<input type="checkbox"/>'
-//Property for what the user typed/selected in an input field
+// Property for what the user typed/selected in an input field
 const TEXT_SELECTION = 'value';
-//Property for whether a checkbox is checked or not
+// Property for whether a checkbox is checked or not
 const CHECKBOX_IS_CHECKED = 'checked';
 
-//dictionary of all the facts that can be pulled up
+// dictionary of all the facts that can be pulled up
 const FACTS = {
   movies: ['V for Vendetta', 'Monty Python and the Holy Grail',
     'Lord of the Rings (all of them)'],
@@ -54,17 +54,17 @@ const FACTS = {
   food: ['Sushi', 'Pizza', 'Yogurt', 'Bacon', 'Lasagna', '50¢ Walmart Pies'],
   videoGames: ['Civ 5', 'Portal 2', 'Kerbal Space Program', 'Skyrim'],
 }
-//array of all the facts, pulled from above
+// array of all the facts, pulled from above
 const FACTS_NAMES = mergeLists();
-//lowercase array of the facts
+// lowercase array of the facts
 const FACTS_NAMES_LOWERCASE = FACTS_NAMES.map(v => v.toLowerCase());
 
-//store what the user favorites
+// store what the user favorites
 let userFavorites = new Set();
 
-//perform necessary setup
+// perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
-  //Populate from built-in favorites automatically when typing
+  // Populate from built-in favorites automatically when typing
   document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
     checkAgree();
 
@@ -104,7 +104,7 @@ function findSubstrings(arr, substring) {
   return out;
 }
 
-//Appends a new HTML element to the given parent ID with the given information
+// Appends a new HTML element to the given parent ID with the given information
 function appendElement(parentId, tagName, innerHtml, elementId = undefined, onclick = undefined) {
   let tag = document.createElement(tagName);
   let parent = document.getElementById(parentId);
@@ -119,17 +119,17 @@ function appendElement(parentId, tagName, innerHtml, elementId = undefined, oncl
   parent.appendChild(tag);
 }
 
-//Removes the given element from the DOM
+// Removes the given element from the DOM
 function removeElement(elementId) {
   document.getElementById(elementId).remove();
 }
 
-//removes all the children from the parent element
+// Removes all the children from the parent element
 function deleteChildren(parentId) {
   document.getElementById(parentId).innerHTML = '';
 }
 
-//Retrieves the specified property from the given html element id
+// Retrieves the specified property from the given html element id
 function retrieveProperty(elementId, propertyName) {
   return document.getElementById(elementId)[propertyName];
 }
@@ -210,22 +210,22 @@ function addUserFavorite(favorite) {
 function removeUserFavorites() {
   let list = document.getElementById(USER_FAVORITE_LIST_ID);
 
-  //look through all list elements for checked boxes
-  //iterate backwards as this list is live, so we avoid needing to adjust the index
+  // look through all list elements for checked boxes
+  // iterate backwards as this list is live, so we avoid needing to adjust the index
   for (let i = list.childNodes.length - 1; i >= 0; i--) {
     let node = list.childNodes[i];
 
-    //if this item's checkbox is ticked, remove it
+    // if this item's checkbox is ticked, remove it
     if (node.hasChildNodes() && node.firstChild.checked) {
       userFavorites.delete(node.innerText);
       node.remove();
     }
   }
 
-  //hasChildNodes isn't working since there's whitespace treated as text by the DOM,
-  //so instead check if there is any non-whitespace left
+  // hasChildNodes isn't working since there's whitespace treated as text by the DOM,
+  // so instead check if there is any non-whitespace left
   if (list.innerHTML.trim() === '') {
-    //add placeholder message
+    // add placeholder message
     appendElement(USER_FAVORITE_LIST_ID, 'p', FAVORITE_PLACEHOLDER_TEXT, FAVORITE_PLACEHOLDER_ID);
   }
 }
