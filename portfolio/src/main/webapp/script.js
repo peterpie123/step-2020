@@ -147,9 +147,9 @@ function generateFact() {
   }
 
   let fact = randomElement(options);
-  // Add fact to the page.
-  let container = document.getElementById(RANDOM_FACT_OUTPUT_ID);
-  container.innerText = fact;
+  //replace the old fact with the one we just generated
+  deleteChildren(RANDOM_FACT_OUTPUT_ID);
+  appendElement(RANDOM_FACT_OUTPUT_ID, 'p', fact);
 }
 
 /* Checks user input against all the facts above and shows options similar
@@ -169,8 +169,7 @@ function checkAgree() {
 
     //Show the user each possibilty
     if (substrings.length > 0) {
-      //insert a line break before displaying results
-      appendElement(FAVORITE_SEARCH_RESULT_ID, 'br', '');
+      //show the tip so users know what to do
       appendElement(FAVORITE_SEARCH_RESULT_ID, 'p', FAVORITE_SEARCH_TIP);
 
       //create a list to hold the results and populate it
@@ -189,8 +188,7 @@ function checkAgree() {
 
 /* Called when the user wants to add to their favorites */
 function processNewFavorite() {
-  let textbox = document.getElementById(USER_FAVORITE_INPUT_ID);
-  addUserFavorite(textbox.value);
+  addUserFavorite(retrieveProperty(USER_FAVORITE_INPUT_ID, TEXT_SELECTION));
 }
 
 /* Handles adding the apropriate HTML when adding a new favorite */
