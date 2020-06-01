@@ -14,8 +14,8 @@
 
 package com.google.sps.servlets;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -39,12 +39,13 @@ public class DataServlet extends HttpServlet {
   private static final String COMMENT_TEXT = "comment";
   private static final String COMMENT_TIMESTAMP = "datePosted";
 
-  Set<Comment> comments = new HashSet<>();
+  List<Comment> comments = new ArrayList<>();
 
   @Override
   public void init() {
     // Retrieve stored comments
-    Query query = new Query("Comment");
+    Query query = new Query("Comment").addSort(COMMENT_TIMESTAMP, SortDirection.DESCENDING);
+
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
@@ -77,7 +78,7 @@ public class DataServlet extends HttpServlet {
     Entity entity = new Entity("Comment");
     entity.setProperty(COMMENT_TEXT, comment.getText());
     entity.setProperty(COMMENT_NAME, comment.getName());
-    entity.setProperty(COMMENT_TIMESTAMP, comment.getDatePosted().getTime());
+    entity.setProperty(COMMENT_TIMESTAMP, comment.getTimestamp());
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(entity);
     

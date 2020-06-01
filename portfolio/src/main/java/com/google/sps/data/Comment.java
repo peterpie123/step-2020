@@ -16,10 +16,11 @@ package com.google.sps.data;
 
 import java.util.Date;
 import java.text.DateFormat;
+import java.lang.Comparable;
 
 /** Represents a comment from a user
 */
-public class Comment {
+public class Comment implements Comparable<Comment> {
   private String text;
   private String name;
   private Date datePosted;
@@ -44,8 +45,14 @@ public class Comment {
     return name;
   }
 
-  public Date getDatePosted() {
-    return datePosted;
+  /** Return milliseconds since the epoch */
+  public long getTimestamp() {
+    return datePosted.getTime();
+  }
+
+  @Override
+  public int compareTo(Comment other) {
+    return (int) (other.getTimestamp() - getTimestamp());
   }
 
   @Override
