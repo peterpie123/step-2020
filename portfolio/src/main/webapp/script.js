@@ -65,6 +65,8 @@ const FACTS_NAMES_LOWERCASE = FACTS_NAMES.map(v => v.toLowerCase());
 
 // Store what the user favorites
 let userFavorites = new Set();
+// Number of comments currently on the page
+let numComments = 0;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -82,8 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if(documentHasElement(COMMENTS_CONTAINER)) {
     // Retrieve comments data from the servlet and add to DOM
     fetch(COMMENTS_URL).then(/* Convert from response stream */r => r.json()).then(comments => {
-      comments.forEach(comment => appendElement(COMMENTS_CONTAINER, 'p', comment));
-    })
+      comments.forEach(comment => {
+        addComment(comment);
+      });
+    });
   }
 });
 
@@ -246,4 +250,15 @@ function removeUserFavorites() {
     // Add placeholder message
     appendElement(USER_FAVORITE_LIST_ID, 'p', FAVORITE_PLACEHOLDER_TEXT, FAVORITE_PLACEHOLDER_ID);
   }
+}
+
+/* Adds the given comment to the page */
+function addComment(comment) {
+  let id = `comment-${numComments}`;
+
+  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id);
+  appendElement(id, 'p', `<b>${comment.name}</b>\t${comment.datePosted}`);
+  appendElement(id, 'p', comment.text);
+
+  numComments++;
 }
