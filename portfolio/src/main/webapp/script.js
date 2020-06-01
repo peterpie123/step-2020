@@ -45,6 +45,10 @@ const HTML_CHECKBOX_TAG = '<input type="checkbox"/>'
 const TEXT_SELECTION = 'value';
 // Property for whether a checkbox is checked or not
 const CHECKBOX_IS_CHECKED = 'checked';
+// ID of the comments container
+const COMMENTS_CONTAINER = 'comments-container';
+// URL for the comments servlet
+const COMMENTS_URL = '/data';
 
 // Dictionary of all the facts that can be pulled up
 const FACTS = {
@@ -64,14 +68,23 @@ let userFavorites = new Set();
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
-  // Populate from built-in favorites automatically when typing
-  document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
-    checkAgree();
+  // Populate from built-in favorites automatically when typing, when present
+  if(documentHasElement(USER_FAVORITE_INPUT_ID)) {
+    document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
+      checkAgree();
 
-    if (e.key == ENTER_CODE) {
-      processNewFavorite();
-    }
-  });
+      if (e.key == ENTER_CODE) {
+        processNewFavorite();
+      }
+    });
+  }
+
+  if(documentHasElement(COMMENTS_CONTAINER)) {
+    // Retrieve comments data from the servlet and add to DOM
+    fetch(COMMENTS_URL).then(/* Convert from response stream */r => r.text()).then(comment => {
+      appendElement(COMMENTS_CONTAINER, 'p', comment);
+    })
+  }
 });
 
 /* Returns a (pseudo)random element of the given array */
@@ -102,6 +115,11 @@ function findSubstrings(arr, substring) {
   });
 
   return out;
+}
+
+/* Returns true if the document has an element with the given ID */
+function documentHasElement(elementId) {
+  return document.getElementById(elementId) ? true : false;
 }
 
 /* Appends a new HTML element to the given parent ID with the given information */
