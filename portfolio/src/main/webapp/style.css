@@ -145,3 +145,21 @@ textarea {
   background-color: #468887;
   cursor: pointer;
 }
+
+#comment-header h2 {
+  margin-top: 0;
+}
+
+#comment-header i {
+  float: right;
+}
+
+#comment-header i:hover {
+  color: #b3b3b8;
+}
+
+#icon-selected {
+  color: #468887;
+}
+
+

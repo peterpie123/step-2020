@@ -49,6 +49,16 @@ const CHECKBOX_IS_CHECKED = 'checked';
 const COMMENTS_CONTAINER = 'comments-container';
 // URL for the comments servlet
 const COMMENTS_URL = '/data';
+// Indicates that comments should be sorted with the newest on top
+const COMMENTS_SORT_NEWEST = 1;
+// Indicates that comments should be sorted with the oldest on top
+const COMMENTS_SORT_OLDEST = -1;
+// ID of the icon that indicates which direction to sort
+const COMMENTS_SORT_ICON = 'icon-selected';
+// Icon corresponding to having the newest comment on top
+const COMMENTS_ICON_NEWEST = 'fa-chevron-circle-up';
+// Icon corresponding to having the oldest comment on top
+const COMMENTS_ICON_OLDEST = 'fa-chevron-circle-down';
 
 // Dictionary of all the facts that can be pulled up
 const FACTS = {
@@ -65,8 +75,10 @@ const FACTS_NAMES_LOWERCASE = FACTS_NAMES.map(v => v.toLowerCase());
 
 // Store what the user favorites
 let userFavorites = new Set();
-// Number of comments currently on the page
-let numComments = 0;
+// List of comments currently on the page
+let pageComments = [];
+// How the comments are currently sorted
+let commentsSort = COMMENTS_SORT_NEWEST;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -254,11 +266,28 @@ function removeUserFavorites() {
 
 /* Adds the given comment to the page */
 function addComment(comment) {
-  let id = `comment-${numComments}`;
+  let id = `comment-${pageComments.length}`;
 
   appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id);
   appendElement(id, 'p', `<b>${comment.name}</b>\t${comment.datePosted}`);
   appendElement(id, 'p', comment.text);
 
-  numComments++;
+  pageComments.push(comment);
+}
+
+/* Called when one of the sorting icons is picked. It changes the sort direction, if necessary */
+function commentSort(sortDirection) {
+  // Only change if the sorting direction has changed
+  if(sortDirection !== commentsSort) {
+    // Remove the ID (creates coloring) from the current sort
+    document.getElementById(COMMENTS_SORT_ICON).removeAttribute('id');
+    if(sortDirection == COMMENTS_SORT_NEWEST) {
+      // Add the ID (color) to the new one
+      document.getElementsByClassName(COMMENTS_ICON_NEWEST).id = COMMENTS_SORT_ICON;
+
+    } else if(sortDirection == COMMENTS_SORT_OLDEST) {
+      // Add the ID (color) to the new one
+      document.getElementsByClassName(COMMENTS_ICON_OLDEST).id = COMMENTS_SORT_ICON;
+    }
+  }
 }
