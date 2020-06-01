@@ -46,7 +46,7 @@ const TEXT_SELECTION = 'value';
 // Property for whether a checkbox is checked or not
 const CHECKBOX_IS_CHECKED = 'checked';
 
-// dictionary of all the facts that can be pulled up
+// Dictionary of all the facts that can be pulled up
 const FACTS = {
   movies: ['V for Vendetta', 'Monty Python and the Holy Grail',
     'Lord of the Rings (all of them)'],
@@ -54,15 +54,15 @@ const FACTS = {
   food: ['Sushi', 'Pizza', 'Yogurt', 'Bacon', 'Lasagna', '50¢ Walmart Pies'],
   videoGames: ['Civ 5', 'Portal 2', 'Kerbal Space Program', 'Skyrim'],
 }
-// array of all the facts, pulled from above
+// Array of all the facts, pulled from above
 const FACTS_NAMES = mergeLists();
-// lowercase array of the facts
+// Lowercase array of the facts
 const FACTS_NAMES_LOWERCASE = FACTS_NAMES.map(v => v.toLowerCase());
 
-// store what the user favorites
+// Store what the user favorites
 let userFavorites = new Set();
 
-// perform necessary setup
+// Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
   // Populate from built-in favorites automatically when typing
   document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
@@ -104,7 +104,7 @@ function findSubstrings(arr, substring) {
   return out;
 }
 
-// Appends a new HTML element to the given parent ID with the given information
+/* Appends a new HTML element to the given parent ID with the given information */
 function appendElement(parentId, tagName, innerHtml, elementId = undefined, onclick = undefined) {
   let tag = document.createElement(tagName);
   let parent = document.getElementById(parentId);
@@ -119,17 +119,17 @@ function appendElement(parentId, tagName, innerHtml, elementId = undefined, oncl
   parent.appendChild(tag);
 }
 
-// Removes the given element from the DOM
+/* Removes the given element from the DOM */
 function removeElement(elementId) {
   document.getElementById(elementId).remove();
 }
 
-// Removes all the children from the parent element
+/* Removes all the children from the parent element */
 function deleteChildren(parentId) {
   document.getElementById(parentId).innerHTML = '';
 }
 
-// Retrieves the specified property from the given html element id
+/* Retrieves the specified property from the given html element id */
 function retrieveProperty(elementId, propertyName) {
   return document.getElementById(elementId)[propertyName];
 }
@@ -139,7 +139,7 @@ function generateFact() {
   let selection = retrieveProperty(FAVORITE_CATEGORY_ID, TEXT_SELECTION);
   let options;
 
-  /* Check if we need to merge all lists */
+  // Check if we need to merge all lists
   if (selection === MERGE_ALL_LISTS) {
     options = FACTS_NAMES;
   } else {
@@ -147,7 +147,7 @@ function generateFact() {
   }
 
   let fact = randomElement(options);
-  //replace the old fact with the one we just generated
+  // Replace the old fact with the one we just generated
   deleteChildren(RANDOM_FACT_OUTPUT_ID);
   appendElement(RANDOM_FACT_OUTPUT_ID, 'p', fact);
 }
@@ -157,26 +157,26 @@ function generateFact() {
 function checkAgree() {
   let input = retrieveProperty(USER_FAVORITE_INPUT_ID, TEXT_SELECTION);
 
-  //remove any current contents so we can insert the results of this search
+  // Remove any current contents so we can insert the results of this search
   deleteChildren(FAVORITE_SEARCH_RESULT_ID);
 
-  //first check if input exactly matches a fact, ignoring case
+  // First check if input exactly matches a fact, ignoring case
   if (FACTS_NAMES_LOWERCASE.includes(input.toLowerCase())) {
     appendElement(FAVORITE_SEARCH_RESULT_ID, 'p', FAVORITE_EXACT_MATCH);
   } else {
-    //check if input is a substring of all the facts
+    // Check if input is a substring of all the facts
     let substrings = findSubstrings(FACTS_NAMES, input);
 
-    //Show the user each possibilty
+    // Show the user each possibilty
     if (substrings.length > 0) {
-      //show the tip so users know what to do
+      // Show the tip so users know what to do
       appendElement(FAVORITE_SEARCH_RESULT_ID, 'p', FAVORITE_SEARCH_TIP);
 
-      //create a list to hold the results and populate it
+      // Create a list to hold the results and populate it
       appendElement(FAVORITE_SEARCH_RESULT_ID, 'ul', '', FAVORITE_SEARCH_RESULT_LIST_ID);
 
       for (let i = 0; i < substrings.length; i++) {
-        //call addUserFavorite when this element is clicked
+        // Call addUserFavorite when this element is clicked
         appendElement(FAVORITE_SEARCH_RESULT_LIST_ID, 'li', substrings[i], /* id = */ undefined, 
                       /* onclick = */ () => addUserFavorite(substrings[i]));
       }
@@ -193,15 +193,15 @@ function processNewFavorite() {
 
 /* Handles adding the apropriate HTML when adding a new favorite */
 function addUserFavorite(favorite) {
-  //Only add if we need to
+  // Only add if we need to
   if (!userFavorites.has(favorite)) {
-    //if this is the first favorite, need to remove the placeholder
+    // If this is the first favorite, need to remove the placeholder
     if (userFavorites.size === 0) {
       removeElement(FAVORITE_PLACEHOLDER_ID);
     }
 
     userFavorites.add(favorite);
-    //append the element with a checkbox as well as the text
+    // Append the element with a checkbox as well as the text
     appendElement(USER_FAVORITE_LIST_ID, 'label', `${HTML_CHECKBOX_TAG}${favorite}`);
   }
 }
@@ -210,22 +210,22 @@ function addUserFavorite(favorite) {
 function removeUserFavorites() {
   let list = document.getElementById(USER_FAVORITE_LIST_ID);
 
-  // look through all list elements for checked boxes
-  // iterate backwards as this list is live, so we avoid needing to adjust the index
+  // Look through all list elements for checked boxes
+  // Iterate backwards as this list is live, so we avoid needing to adjust the index
   for (let i = list.childNodes.length - 1; i >= 0; i--) {
     let node = list.childNodes[i];
 
-    // if this item's checkbox is ticked, remove it
+    // If this item's checkbox is ticked, remove it
     if (node.hasChildNodes() && node.firstChild.checked) {
       userFavorites.delete(node.innerText);
       node.remove();
     }
   }
 
-  // hasChildNodes isn't working since there's whitespace treated as text by the DOM,
-  // so instead check if there is any non-whitespace left
+  /* hasChildNodes() isn't working since there's whitespace treated as text by the DOM,
+   * so instead check if there is any non-whitespace left */
   if (list.innerHTML.trim() === '') {
-    // add placeholder message
+    // Add placeholder message
     appendElement(USER_FAVORITE_LIST_ID, 'p', FAVORITE_PLACEHOLDER_TEXT, FAVORITE_PLACEHOLDER_ID);
   }
 }
