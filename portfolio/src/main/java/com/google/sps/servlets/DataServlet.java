@@ -39,7 +39,7 @@ public class DataServlet extends HttpServlet {
   private static final String COMMENT_TEXT = "comment";
   private static final String COMMENT_TIMESTAMP = "datePosted";
 
-  List<Comment> comments = new ArrayList<>();
+  private static List<Comment> comments = new ArrayList<>();
 
   @Override
   public void init() {

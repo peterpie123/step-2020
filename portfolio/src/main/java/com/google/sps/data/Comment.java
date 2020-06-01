@@ -18,12 +18,11 @@ import java.util.Date;
 import java.text.DateFormat;
 import java.lang.Comparable;
 
-/** Represents a comment from a user
-*/
+/** Represents a single comment from a user. */
 public class Comment implements Comparable<Comment> {
-  private String text;
-  private String name;
-  private Date datePosted;
+  final private String text;
+  final private String name;
+  final private Date datePosted;
 
   public Comment(String text, String name) {
     this.text = text;
@@ -31,6 +30,7 @@ public class Comment implements Comparable<Comment> {
     this.datePosted = new Date();
   }
 
+  /** Create a calendar with a posted date of given milliseconds from the epoch */
   public Comment(String text, String name, long time) {
     this.text = text;
     this.name = name;
