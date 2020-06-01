@@ -45,10 +45,8 @@ public class DataServlet extends HttpServlet {
   public void init() {
     // Retrieve stored comments
     Query query = new Query("Comment").addSort(COMMENT_TIMESTAMP, SortDirection.DESCENDING);
-
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
-
     for(Entity entity : results.asIterable()) {
       String text = (String) entity.getProperty(COMMENT_TEXT);
       String name = (String) entity.getProperty(COMMENT_NAME);
@@ -61,7 +59,6 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Gson gson = new Gson();
-
     response.setContentType("application/json;");
     response.getWriter().println(gson.toJson(comments));
   }
@@ -71,7 +68,6 @@ public class DataServlet extends HttpServlet {
     // Create and add the new comment
     Comment comment = new Comment(request.getParameter(COMMENT_TEXT), 
                                   request.getParameter(COMMENT_NAME));
-
     comments.add(comment);
 
     // Store the comment so it persists
