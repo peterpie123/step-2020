@@ -30,15 +30,53 @@ public class Comment {
     this.datePosted = new Date();
   }
 
-  private String getText() {
+  public Comment(String text, String name, long time) {
+    this.text = text;
+    this.name = name;
+    this.datePosted = new Date(time);
+  }
+
+  public String getText() {
     return text;
   }
 
-  private String getName() {
+  public String getName() {
     return name;
   }
 
-  private Date getDate() {
+  public Date getDatePosted() {
     return datePosted;
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 13;
+    hash = 31 * hash + text.hashCode();
+    hash = 31 * hash + name.hashCode();
+    hash = 31 * hash + datePosted.hashCode();
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if(!(other instanceof Comment)) {
+      return false;
+    }
+    Comment c = (Comment) other;
+
+    if(this == c) {
+      return true;
+    }
+
+    if(!(name.equals(c.name))) {
+      return false;
+    }
+    if(!(text.equals(c.text))) {
+      return false;
+    }
+    if(!(datePosted.equals(c.datePosted))) {
+      return false;
+    }
+    return true;
   }
 }
