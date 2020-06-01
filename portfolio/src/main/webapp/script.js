@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if(documentHasElement(COMMENTS_CONTAINER)) {
     // Retrieve comments data from the servlet and add to DOM
-    fetch(COMMENTS_URL).then(/* Convert from response stream */r => r.text()).then(comment => {
-      appendElement(COMMENTS_CONTAINER, 'p', comment);
+    fetch(COMMENTS_URL).then(/* Convert from response stream */r => r.json()).then(comments => {
+      comments.forEach(comment => appendElement(COMMENTS_CONTAINER, 'p', comment));
     })
   }
 });
