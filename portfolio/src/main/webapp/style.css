@@ -17,7 +17,12 @@ video {
     border-radius: 5px;
 }
 
-
+button,
+select,
+input {
+    border-radius: 3px;
+    border: 1px solid black;
+}
 
 .mickey-media {
     width: 400px;
@@ -63,6 +68,7 @@ video {
 
 .nav-active {
     background-color: black;
+    border-radius: 5px;
     color: white;
 }
 
@@ -72,4 +78,27 @@ video {
 
 .nav-item a:hover {
     background-color: #468887;
+    border-radius: 5px;
+}
+
+#sidebar {
+  float: right;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 50px 50px 0 0;
+}
+
+#fav-list {
+    padding: 0;
+    margin: 8px;
+}
+
+#fav-list label {
+    display: block;
+}
+
+#agree-container li:hover {
+    cursor: pointer;
+    color: #468887;
 }
