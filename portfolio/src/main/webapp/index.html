@@ -47,16 +47,18 @@
          so he's at least 11 now. Bunnies are only supposed to live around 8 years!</p>
 
       <h2>Comments</h2>
-      <form action="/data" method="POST">
-        <p>Name:</p>
-        <input name="name" type="text" placeholder="Bob"/>
-
-        <p>Comment:</p>
-        <textarea name="comment"></textarea>
+      <form id="comments-form" action="/data" method="POST">
+        <label>Name: 
+          <input name="name" type="text" placeholder="Bob"/>
+        </label>
+        <br/>
+        <label>Comment: 
+          <textarea name="comment"></textarea>
+        </label>
 
         <input type="submit"/>
       </form>
-
+      <hr/>
       <div id="comments-container">
       </div>
 

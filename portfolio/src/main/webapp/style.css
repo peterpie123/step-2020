@@ -19,7 +19,8 @@ video {
 
 button,
 select,
-input {
+input,
+textarea {
     border-radius: 3px;
     border: 1px solid black;
 }
@@ -101,4 +102,17 @@ input {
 #agree-container li:hover {
     cursor: pointer;
     color: #468887;
+}
+
+#comments-form {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+#comments-container div {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  margin-top: 5px;
+  padding-left: 10px;
 }
