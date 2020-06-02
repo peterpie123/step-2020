@@ -96,9 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(documentHasElement(COMMENTS_CONTAINER)) {
     // Retrieve comments data from the servlet and add to DOM
     fetch(COMMENTS_URL).then(/* Convert from response stream */r => r.json()).then(comments => {
-      comments.forEach(comment => {
-        addComment(comment);
-      });
+      addComments(comments);
     });
   }
 });
@@ -264,30 +262,54 @@ function removeUserFavorites() {
   }
 }
 
-/* Adds the given comment to the page */
-function addComment(comment) {
-  let id = `comment-${pageComments.length}`;
-
+/* Adds the given comment to the page with the given ID. */
+function addSingleComment(comment, id) {
   appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id);
-  appendElement(id, 'p', `<b>${comment.name}</b>\t${comment.datePosted}`);
-  appendElement(id, 'p', comment.text);
+  //format the time nicely, by starting at the epoch and setting the milliseconds
+  let date = new Date(0);
+  date.setUTCMilliseconds(comment.timestamp);
 
-  pageComments.push(comment);
+  appendElement(id, 'p', `<b>${comment.name}</b>\t${date.toLocaleTimeString()}`);
+  appendElement(id, 'p', comment.text);
+}
+
+/* Adds the given list of comments to the page, and only adds them to the pageComments
+ * array if pushComments is true. startIndex indicates where to start counting up comment ID's */
+function addComments(comments, pushComments = true, startIndex = pageComments.length) {
+  comments.forEach((comment, index) => {
+    let id = `comment-${index + startIndex}`;
+    addSingleComment(comment, id);
+
+    if(pushComments) {
+      pageComments.push(comment);
+    }
+  });
+}
+
+/* Reverses the order of comments */
+function reverseComments() {
+  pageComments.reverse();
+  // Remove existing comments and add the reversed list
+  deleteChildren(COMMENTS_CONTAINER);
+  addComments(pageComments, /* pushComments = */ false, /* startIndex = */ 0);
 }
 
 /* Called when one of the sorting icons is picked. It changes the sort direction, if necessary */
 function commentSort(sortDirection) {
   // Only change if the sorting direction has changed
   if(sortDirection !== commentsSort) {
-    // Remove the ID (creates coloring) from the current sort
-    document.getElementById(COMMENTS_SORT_ICON).removeAttribute('id');
-    if(sortDirection == COMMENTS_SORT_NEWEST) {
-      // Add the ID (color) to the new one
-      document.getElementsByClassName(COMMENTS_ICON_NEWEST).id = COMMENTS_SORT_ICON;
+    // Remove the ID (removes coloring) from the current sort
+    document.getElementById(COMMENTS_SORT_ICON).id = '';
+    commentsSort = sortDirection;
 
-    } else if(sortDirection == COMMENTS_SORT_OLDEST) {
-      // Add the ID (color) to the new one
-      document.getElementsByClassName(COMMENTS_ICON_OLDEST).id = COMMENTS_SORT_ICON;
+    if(sortDirection === COMMENTS_SORT_NEWEST) {
+      // Add the ID (color) to the icon corresponding to newest
+      document.getElementsByClassName(COMMENTS_ICON_NEWEST)[0].id = COMMENTS_SORT_ICON;
+      reverseComments()
+    } else if(sortDirection === COMMENTS_SORT_OLDEST) {
+      // Add the ID (color) to the icon corresponding to oldest
+      document.getElementsByClassName(COMMENTS_ICON_OLDEST)[0].id = COMMENTS_SORT_ICON;
+      reverseComments();
     }
   }
 }
