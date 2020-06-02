@@ -35,10 +35,18 @@ import javax.servlet.http.HttpServletResponse;
 /** Servlet that returns some example content. TODO: modify this file to handle comments data */
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
+  /** Key for the name of the commenter */
   private static final String COMMENT_NAME = "name";
+  /** Key for the comment contents */
   private static final String COMMENT_TEXT = "comment";
+  /** Key for the timestamp */
   private static final String COMMENT_TIMESTAMP = "timestamp";
+  /** Default number of comments to send */
+  private static final int DEFAULT_COMMENT_NUM = 25;
+  /** Query string which contains the number of comments to send */
   private static final String NUM_COMMENTS_QUERY = "num-comments";
+  /** Header containing the total number of comments stored */
+  private static final String TOTAL_NUMBER_HEADER = "num-comments";
 
   private static List<Comment> comments = new ArrayList<>();
 
@@ -60,14 +68,15 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Gson gson = new Gson();
-    // Default to 25 comments
-    int numComments = 25;
+    int numComments = DEFAULT_COMMENT_NUM;
 
     if(request.getParameter(NUM_COMMENTS_QUERY) != null) {
       numComments = Integer.parseInt(request.getParameter(NUM_COMMENTS_QUERY));
+      // Revert to default if user specified an invalid number
+      if(numComments <= 0) {
+        numComments = DEFAULT_COMMENT_NUM;
+      }
     }
-
-    response.setContentType("application/json;");
 
     // Respond with up to numComments comments
     List<Comment> send = new ArrayList<>(numComments);
@@ -75,7 +84,10 @@ public class DataServlet extends HttpServlet {
       send.add(comments.get(i));
     }
 
+    response.setContentType("application/json;");
     response.getWriter().println(gson.toJson(send));
+    // Send the total number of comments
+    response.addIntHeader(TOTAL_NUMBER_HEADER, comments.size());
   }
 
   @Override

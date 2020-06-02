@@ -31,12 +31,12 @@ const COMMENTS_ICON_NEWEST = 'fa-chevron-circle-up';
 const COMMENTS_ICON_OLDEST = 'fa-chevron-circle-down';
 // Query string for indicating how many comments to retrieve
 const NUM_COMMENTS_QUERY = 'num-comments';
-// Default number of comments to retrieve
-const DEFAULT_NUM_COMMENTS = 25;
 // Property for what the user typed/selected in an input field
 const TEXT_SELECTION = 'value';
 // ID of the field where the user selects how many comments to retrieve
 const NUM_COMMENTS_FIELD = 'num-comments';
+// Header containing the total number of comments stored
+const TOTAL_NUMBER_HEADER = "num-comments";
 
 // List of comments currently on the page
 let pageComments = [];
@@ -53,13 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /** Adds the given comment to the page with the given ID. */
 function addSingleComment(comment, id) {
-  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id);
-  //format the time nicely, by starting at the epoch and setting the milliseconds
+  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id, undefined, 'comment');
+  // Format the time nicely, by starting at the epoch and setting the milliseconds
   let date = new Date(0);
   date.setUTCMilliseconds(comment.timestamp);
 
-  appendElement(id, 'p', `<b>${comment.name}</b>\t${date.toLocaleTimeString()}`);
-  appendElement(id, 'p', comment.text);
+  // ID for the container which houses the information for a comment
+  let contentId = id + '-content';
+  appendElement(id, 'div', '', contentId, undefined, 'comment-text');
+
+  appendElement(contentId, 'p', `<b>${comment.name}</b>\t${date.toLocaleTimeString()}`);
+  appendElement(contentId, 'p', comment.text);
+  // Add the checkbox that will toggle deleting this comment
+  appendElement(id, 'div', '', undefined, () => prepareDelete(id), 'comment-toggle');
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments
@@ -107,14 +113,26 @@ function commentSort(sortDirection) {
 function retrieveComments() {
   deleteChildren(COMMENTS_CONTAINER);
   pageComments = [];
-  
-  fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` + 
-        `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}`).then(
-    /* Convert from response stream */r => r.json()).then(comments => {
-    addComments(comments);
-  });
+  let numComments;
+
+  // Construct a query string with the appropriate number of comments being retrieved
+  fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` +
+    `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}`).then(
+    /* Convert from response stream */r => {
+        // Get the total number of stored comments
+        numComments = r.headers.get(TOTAL_NUMBER_HEADER);
+        return r.json();
+      }).then(comments => {
+        addComments(comments);
+      });
+}
+
+/** Prepares the given comment ID for deletion */
+function prepareDelete(id) {
+  console.log('delete ' + id);
 }
 
 // Add functions to window so onclick works in HTML
 window.commentSort = commentSort;
 window.retrieveComments = retrieveComments;
+window.prepareDelete = prepareDelete;

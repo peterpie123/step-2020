@@ -42,7 +42,8 @@ export function documentHasElement(elementId) {
 }
 
 /** Appends a new HTML element to the given parent ID with the given information */
-export function appendElement(parentId, tagName, innerHtml, elementId = undefined, onclick = undefined) {
+export function appendElement(parentId, tagName, innerHtml, elementId = undefined,
+  onclick = undefined, className = undefined) {
   let tag = document.createElement(tagName);
   let parent = document.getElementById(parentId);
 
@@ -50,8 +51,11 @@ export function appendElement(parentId, tagName, innerHtml, elementId = undefine
   if (elementId !== undefined) {
     tag.id = elementId;
   }
-  if(onclick !== undefined) {
+  if (onclick !== undefined) {
     tag.onclick = onclick;
+  }
+  if(className !== undefined) {
+    tag.className = className;
   }
   parent.appendChild(tag);
 }
@@ -69,5 +73,5 @@ export function deleteChildren(parentId) {
 /** Retrieves the specified property from the given html element id */
 export function retrieveProperty(elementId, propertyName) {
   return document.getElementById(elementId)[propertyName];
-} 
+}
 
