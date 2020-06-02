@@ -23,11 +23,12 @@ public class Comment implements Comparable<Comment> {
   final private String text;
   final private String name;
   final private long timestamp;
+  private final int id;
+
+  private static int commentCount = 0;
 
   public Comment(String text, String name) {
-    this.text = text;
-    this.name = name;
-    this.timestamp = System.currentTimeMillis();
+    this(text, name, System.currentTimeMillis());
   }
 
   /** Create a calendar with a posted date of given milliseconds from the epoch */
@@ -35,6 +36,8 @@ public class Comment implements Comparable<Comment> {
     this.text = text;
     this.name = name;
     this.timestamp = timestamp;
+
+    id = commentCount++;
   }
 
   public String getText() {
@@ -48,6 +51,10 @@ public class Comment implements Comparable<Comment> {
   /** Return milliseconds since the epoch, in UTC */
   public long getTimestamp() {
     return timestamp;
+  }
+
+  public int getId() {
+    return id;
   }
 
   @Override

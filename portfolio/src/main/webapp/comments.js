@@ -37,6 +37,8 @@ const TEXT_SELECTION = 'value';
 const NUM_COMMENTS_FIELD = 'num-comments';
 // Header containing the total number of comments stored
 const TOTAL_NUMBER_HEADER = "num-comments";
+// Prefix for the ID of the div containing an entire comment. Postfixed by the comment ID
+const COMMENT_CONTAINER_PREFIX = 'comment-';
 
 // List of comments currently on the page
 let pageComments = [];
@@ -54,32 +56,37 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /** Adds the given comment to the page with the given ID. */
-function addSingleComment(comment, id) {
-  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id, undefined, 'comment');
+function addSingleComment(comment) {
+  let containerId = COMMENT_CONTAINER_PREFIX + comment.id;
+
+  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ containerId, undefined, 'comment');
   // Format the time nicely, by starting at the epoch and setting the milliseconds
   let date = new Date(0);
   date.setUTCMilliseconds(comment.timestamp);
 
   // ID for the container which houses the information for a comment
-  let contentId = id + '-content';
-  appendElement(id, 'div', '', contentId, undefined, 'comment-text');
+  let contentId = containerId + '-content';
+  appendElement(containerId, 'div', '', contentId, undefined, 'comment-text');
   // Add the name, time, and content
   appendElement(contentId, 'p', `<b>${comment.name}</b>\t${date.toLocaleTimeString()}`);
   appendElement(contentId, 'p', comment.text);
 
   // Add the element that will toggle deleting this comment
-  appendElement(id, 'div', '', undefined, () => prepareDelete(id), 'comment-toggle');
+  appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id), 
+                'comment-toggle');
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments
  * array if pushComments is true. startIndex indicates where to start counting up comment ID's */
-function addComments(comments, pushComments = true, startIndex = pageComments.length) {
-  comments.forEach((comment, index) => {
-    let id = `comment-${index + startIndex}`;
-    addSingleComment(comment, id);
+function addComments(comments, pushComments = true) {
+  comments.forEach(comment => {
+    addSingleComment(comment);
 
     if (pushComments) {
       pageComments.push(comment);
+    }
+    if(commentsToDelete.has(comment.id)) {
+      addClass(COMMENT_CONTAINER_PREFIX + comment.id, 'comment-delete');
     }
   });
 }
@@ -135,16 +142,21 @@ function prepareDelete(id) {
   if(commentsToDelete.has(id)) {
     // Remove from deletion
     commentsToDelete.delete(id);
-    removeClass(id, 'comment-delete');
+    removeClass(COMMENT_CONTAINER_PREFIX + id, 'comment-delete');
 
   } else {
     // Add to deletion
     commentsToDelete.add(id);
-    addClass(id, 'comment-delete');
+    addClass(COMMENT_CONTAINER_PREFIX + id, 'comment-delete');
   }
+}
+
+function deleteComments() {
+  console.log(commentsToDelete);
 }
 
 // Add functions to window so onclick works in HTML
 window.commentSort = commentSort;
 window.retrieveComments = retrieveComments;
 window.prepareDelete = prepareDelete;
+window.deleteComments = deleteComments
