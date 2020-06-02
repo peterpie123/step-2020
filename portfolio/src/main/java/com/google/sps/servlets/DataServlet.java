@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 public class DataServlet extends HttpServlet {
   private static final String COMMENT_NAME = "name";
   private static final String COMMENT_TEXT = "comment";
-  private static final String COMMENT_TIMESTAMP = "datePosted";
+  private static final String COMMENT_TIMESTAMP = "timestamp";
 
   private static List<Comment> comments = new ArrayList<>();
 

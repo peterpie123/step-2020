@@ -22,19 +22,19 @@ import java.lang.Comparable;
 public class Comment implements Comparable<Comment> {
   final private String text;
   final private String name;
-  final private Date datePosted;
+  final private long timestamp;
 
   public Comment(String text, String name) {
     this.text = text;
     this.name = name;
-    this.datePosted = new Date();
+    this.timestamp = System.currentTimeMillis();
   }
 
   /** Create a calendar with a posted date of given milliseconds from the epoch */
-  public Comment(String text, String name, long time) {
+  public Comment(String text, String name, long timestamp) {
     this.text = text;
     this.name = name;
-    this.datePosted = new Date(time);
+    this.timestamp = timestamp;
   }
 
   public String getText() {
@@ -45,14 +45,20 @@ public class Comment implements Comparable<Comment> {
     return name;
   }
 
-  /** Return milliseconds since the epoch */
+  /** Return milliseconds since the epoch, in UTC */
   public long getTimestamp() {
-    return datePosted.getTime();
+    return timestamp;
   }
 
   @Override
   public int compareTo(Comment other) {
-    return (int) (other.getTimestamp() - getTimestamp());
+    int compare = (int) (other.timestamp - timestamp);
+    
+    // If timestamps are equal, sort by name field
+    if(compare == 0) {
+      return name.compareTo(other.name);
+    }
+    return compare;
   }
 
   @Override
@@ -60,7 +66,7 @@ public class Comment implements Comparable<Comment> {
     int hash = 13;
     hash = 31 * hash + text.hashCode();
     hash = 31 * hash + name.hashCode();
-    hash = 31 * hash + datePosted.hashCode();
+    hash = 31 * hash + ((Long) timestamp).hashCode();
     return hash;
   }
 
@@ -75,13 +81,7 @@ public class Comment implements Comparable<Comment> {
       return true;
     }
 
-    if(!(name.equals(c.name))) {
-      return false;
-    }
-    if(!(text.equals(c.text))) {
-      return false;
-    }
-    if(!(datePosted.equals(c.datePosted))) {
+    if(!(name.equals(c.name) && text.equals(c.text) && timestamp == c.timestamp)) {
       return false;
     }
     return true;
