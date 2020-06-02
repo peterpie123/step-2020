@@ -38,6 +38,7 @@ public class DataServlet extends HttpServlet {
   private static final String COMMENT_NAME = "name";
   private static final String COMMENT_TEXT = "comment";
   private static final String COMMENT_TIMESTAMP = "timestamp";
+  private static final String NUM_COMMENTS_QUERY = "num-comments";
 
   private static List<Comment> comments = new ArrayList<>();
 
@@ -59,8 +60,22 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Gson gson = new Gson();
+    // Default to 25 comments
+    int numComments = 25;
+
+    if(request.getParameter(NUM_COMMENTS_QUERY) != null) {
+      numComments = Integer.parseInt(request.getParameter(NUM_COMMENTS_QUERY));
+    }
+
     response.setContentType("application/json;");
-    response.getWriter().println(gson.toJson(comments));
+
+    // Respond with up to numComments comments
+    List<Comment> send = new ArrayList<>(numComments);
+    for(int i = 0; i < numComments && i < comments.size(); i++) {
+      send.add(comments.get(i));
+    }
+
+    response.getWriter().println(gson.toJson(send));
   }
 
   @Override

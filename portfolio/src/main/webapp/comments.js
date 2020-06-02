@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Import utlity functions
-import {documentHasElement, appendElement, deleteChildren} from './script.js';
+import { documentHasElement, appendElement, deleteChildren, retrieveProperty } from './script.js';
 
 // ID of the comments container
 const COMMENTS_CONTAINER = 'comments-container';
@@ -29,6 +29,14 @@ const COMMENTS_SORT_ICON = 'icon-selected';
 const COMMENTS_ICON_NEWEST = 'fa-chevron-circle-up';
 // Icon corresponding to having the oldest comment on top
 const COMMENTS_ICON_OLDEST = 'fa-chevron-circle-down';
+// Query string for indicating how many comments to retrieve
+const NUM_COMMENTS_QUERY = 'num-comments';
+// Default number of comments to retrieve
+const DEFAULT_NUM_COMMENTS = 25;
+// Property for what the user typed/selected in an input field
+const TEXT_SELECTION = 'value';
+// ID of the field where the user selects how many comments to retrieve
+const NUM_COMMENTS_FIELD = 'num-comments';
 
 // List of comments currently on the page
 let pageComments = [];
@@ -37,16 +45,13 @@ let commentsSort = COMMENTS_SORT_NEWEST;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
-  if(documentHasElement(COMMENTS_CONTAINER)) {
+  if (documentHasElement(COMMENTS_CONTAINER)) {
     // Retrieve comments data from the servlet and add to DOM
-    fetch(COMMENTS_URL).then(/* Convert from response stream */r => r.json()).then(comments => {
-      addComments(comments);
-    });
+    retrieveComments();
   }
-
 });
 
-/* Adds the given comment to the page with the given ID. */
+/** Adds the given comment to the page with the given ID. */
 function addSingleComment(comment, id) {
   appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id);
   //format the time nicely, by starting at the epoch and setting the milliseconds
@@ -57,20 +62,20 @@ function addSingleComment(comment, id) {
   appendElement(id, 'p', comment.text);
 }
 
-/* Adds the given list of comments to the page, and only adds them to the pageComments
+/**Adds the given list of comments to the page, and only adds them to the pageComments
  * array if pushComments is true. startIndex indicates where to start counting up comment ID's */
 function addComments(comments, pushComments = true, startIndex = pageComments.length) {
   comments.forEach((comment, index) => {
     let id = `comment-${index + startIndex}`;
     addSingleComment(comment, id);
 
-    if(pushComments) {
+    if (pushComments) {
       pageComments.push(comment);
     }
   });
 }
 
-/* Reverses the order of comments */
+/** Reverses the order of comments */
 function reverseComments() {
   pageComments.reverse();
   // Remove existing comments and add the reversed list
@@ -78,19 +83,19 @@ function reverseComments() {
   addComments(pageComments, /* pushComments = */ false, /* startIndex = */ 0);
 }
 
-/* Called when one of the sorting icons is picked. It changes the sort direction, if necessary */
-export function commentSort(sortDirection) {
+/** Called when one of the sorting icons is picked. It changes the sort direction, if necessary */
+function commentSort(sortDirection) {
   // Only change if the sorting direction has changed
-  if(sortDirection !== commentsSort) {
+  if (sortDirection !== commentsSort) {
     // Remove the ID (removes coloring) from the current sort
     document.getElementById(COMMENTS_SORT_ICON).id = '';
     commentsSort = sortDirection;
 
-    if(sortDirection === COMMENTS_SORT_NEWEST) {
+    if (sortDirection === COMMENTS_SORT_NEWEST) {
       // Add the ID (color) to the icon corresponding to newest
       document.getElementsByClassName(COMMENTS_ICON_NEWEST)[0].id = COMMENTS_SORT_ICON;
       reverseComments()
-    } else if(sortDirection === COMMENTS_SORT_OLDEST) {
+    } else if (sortDirection === COMMENTS_SORT_OLDEST) {
       // Add the ID (color) to the icon corresponding to oldest
       document.getElementsByClassName(COMMENTS_ICON_OLDEST)[0].id = COMMENTS_SORT_ICON;
       reverseComments();
@@ -98,5 +103,18 @@ export function commentSort(sortDirection) {
   }
 }
 
+/** Retrieves comments from the server and places them on the DOM, clearing existing comments */
+function retrieveComments() {
+  deleteChildren(COMMENTS_CONTAINER);
+  pageComments = [];
+  
+  fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` + 
+        `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}`).then(
+    /* Convert from response stream */r => r.json()).then(comments => {
+    addComments(comments);
+  });
+}
+
 // Add functions to window so onclick works in HTML
 window.commentSort = commentSort;
+window.retrieveComments = retrieveComments;
