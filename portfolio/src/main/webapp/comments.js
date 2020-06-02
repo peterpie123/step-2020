@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Import utlity functions
-import { documentHasElement, appendElement, deleteChildren, retrieveProperty } from './script.js';
+import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass } from './script.js';
 
 // ID of the comments container
 const COMMENTS_CONTAINER = 'comments-container';
@@ -42,6 +42,8 @@ const TOTAL_NUMBER_HEADER = "num-comments";
 let pageComments = [];
 // How the comments are currently sorted
 let commentsSort = COMMENTS_SORT_NEWEST;
+// Comments currently selected for deletion
+let commentsToDelete = new Set();
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -61,10 +63,11 @@ function addSingleComment(comment, id) {
   // ID for the container which houses the information for a comment
   let contentId = id + '-content';
   appendElement(id, 'div', '', contentId, undefined, 'comment-text');
-
+  // Add the name, time, and content
   appendElement(contentId, 'p', `<b>${comment.name}</b>\t${date.toLocaleTimeString()}`);
   appendElement(contentId, 'p', comment.text);
-  // Add the checkbox that will toggle deleting this comment
+
+  // Add the element that will toggle deleting this comment
   appendElement(id, 'div', '', undefined, () => prepareDelete(id), 'comment-toggle');
 }
 
@@ -129,7 +132,16 @@ function retrieveComments() {
 
 /** Prepares the given comment ID for deletion */
 function prepareDelete(id) {
-  console.log('delete ' + id);
+  if(commentsToDelete.has(id)) {
+    // Remove from deletion
+    commentsToDelete.delete(id);
+    removeClass(id, 'comment-delete');
+
+  } else {
+    // Add to deletion
+    commentsToDelete.add(id);
+    addClass(id, 'comment-delete');
+  }
 }
 
 // Add functions to window so onclick works in HTML

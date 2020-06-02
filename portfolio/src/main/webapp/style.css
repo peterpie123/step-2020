@@ -177,10 +177,15 @@ textarea {
 
 .comment-toggle {
   float: right;
-  width: 30px;
-  height: 100px;
-  background-color: darkred;
+  background-color: #468887;
   border-radius: 5px;
+  width: 5%;
+  margin-left: 1px;
+}
+
+.comment-toggle:hover {
+  cursor: pointer;
+  background-color: #b3b3b8;
 }
 
 .comment {
@@ -189,8 +194,18 @@ textarea {
   margin-top: 5px;
   padding-left: 10px;
   overflow: auto;
+  display: flex;
 }
 
 .comment-text {
   float: left;
+  width: 95%;
+}
+
+.comment-delete {
+  color: darkgrey;
+}
+
+.comment-delete .comment-toggle {
+  background-color: #d42f26;
 }

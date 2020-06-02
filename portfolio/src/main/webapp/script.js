@@ -75,3 +75,12 @@ export function retrieveProperty(elementId, propertyName) {
   return document.getElementById(elementId)[propertyName];
 }
 
+/** Adds the given className to the given element */
+export function addClass(elementId, className) {
+  document.getElementById(elementId).classList.add(className);
+}
+
+/** Removes the given className from the given element */
+export function removeClass(elementId, className) {
+  document.getElementById(elementId).classList.remove(className);
+}
