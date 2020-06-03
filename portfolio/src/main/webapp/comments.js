@@ -72,8 +72,8 @@ function addSingleComment(comment) {
   appendElement(contentId, 'p', comment.text);
 
   // Add the element that will toggle deleting this comment
-  appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id), 
-                'comment-toggle');
+  appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id),
+    'comment-toggle');
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments
@@ -85,7 +85,7 @@ function addComments(comments, pushComments = true) {
     if (pushComments) {
       pageComments.push(comment);
     }
-    if(commentsToDelete.has(comment.id)) {
+    if (commentsToDelete.has(comment.id)) {
       addClass(COMMENT_CONTAINER_PREFIX + comment.id, 'comment-delete');
     }
   });
@@ -116,6 +116,9 @@ function commentSort(sortDirection) {
       document.getElementsByClassName(COMMENTS_ICON_OLDEST)[0].id = COMMENTS_SORT_ICON;
       reverseComments();
     }
+
+    // Finally, re-update the comments section
+    retrieveComments();
   }
 }
 
@@ -124,10 +127,11 @@ function retrieveComments() {
   deleteChildren(COMMENTS_CONTAINER);
   pageComments = [];
   let numComments;
+  let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
 
   // Construct a query string with the appropriate number of comments being retrieved
   fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` +
-    `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}`).then(
+    `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}&sort-ascending=${ascending}`).then(
     /* Convert from response stream */r => {
         // Get the total number of stored comments
         numComments = r.headers.get(TOTAL_NUMBER_HEADER);
@@ -139,7 +143,7 @@ function retrieveComments() {
 
 /** Prepares the given comment ID for deletion */
 function prepareDelete(id) {
-  if(commentsToDelete.has(id)) {
+  if (commentsToDelete.has(id)) {
     // Remove from deletion
     commentsToDelete.delete(id);
     removeClass(COMMENT_CONTAINER_PREFIX + id, 'comment-delete');
@@ -152,22 +156,20 @@ function prepareDelete(id) {
 }
 
 function deleteComments() {
-  if(commentsToDelete.size > 0) {
+  if (commentsToDelete.size > 0) {
     let deleteString = '?';
 
     Array.from(commentsToDelete).forEach((id, index) => {
-      if(index > 0) {
+      if (index > 0) {
         deleteString += '&';
       }
       deleteString += 'delete=' + id;
     });
 
     fetch(`/data${deleteString}`, {
-    method: 'DELETE',
-  }).then(r => console.log('deleted!'));
+      method: 'DELETE',
+    }).then(r => retrieveComments());
   }
-  
-  
 }
 
 // Add functions to window so onclick works in HTML

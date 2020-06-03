@@ -38,6 +38,8 @@ public class DataServlet extends HttpServlet {
   private static final String NUM_COMMENTS_QUERY = "num-comments";
   /** Header containing the total number of comments stored */
   private static final String TOTAL_NUMBER_HEADER = "num-comments";
+  /** Query string that indicates whether to sort ascending or descending */
+  private static final String SORT_ASCENDING_QUERY = "sort-ascending";
 
   private static List<Comment> comments;
 
@@ -47,13 +49,26 @@ public class DataServlet extends HttpServlet {
     comments = Comment.loadComments();
   }
 
-  private static String stringifyComments(int numComments) {
+  private static String stringifyComments(int numComments, boolean sortAscending) {
     Gson gson = new Gson();
     List<Comment> send = new ArrayList<>(numComments);
 
-    // Respond with up to numComments comments
-    for(int i = 0; i < numComments && i < comments.size(); i++) {
-      send.add(comments.get(i));
+    if(sortAscending) {
+      // Send the first numComments entries
+      for(int i = 0; i < numComments && i < comments.size(); i++) {
+        send.add(comments.get(i));
+      }
+    } else {
+      // Send the last numComments entries 
+      if(numComments > comments.size()) {
+        for(int i = comments.size() - 1; i >= 0; i--) {
+          send.add(comments.get(i));
+        }
+      } else {
+        for(int i = comments.size() - 1; i >= comments.size() - numComments; i--) {
+            send.add(comments.get(i));
+        }
+      }
     }
 
     return gson.toJson(send);
@@ -62,6 +77,7 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     int numComments = DEFAULT_COMMENT_NUM;
+    boolean sortAscending = true;
 
     if(request.getParameter(NUM_COMMENTS_QUERY) != null) {
       numComments = Integer.parseInt(request.getParameter(NUM_COMMENTS_QUERY));
@@ -70,9 +86,12 @@ public class DataServlet extends HttpServlet {
         numComments = DEFAULT_COMMENT_NUM;
       }
     }
+    if(request.getParameter(SORT_ASCENDING_QUERY) != null) {
+      sortAscending = Boolean.parseBoolean(request.getParameter(SORT_ASCENDING_QUERY));
+    }
 
     response.setContentType("application/json;");
-    response.getWriter().println(stringifyComments(numComments));
+    response.getWriter().println(stringifyComments(numComments, sortAscending));
     // Send the total number of comments
     response.addIntHeader(TOTAL_NUMBER_HEADER, comments.size());
   }
