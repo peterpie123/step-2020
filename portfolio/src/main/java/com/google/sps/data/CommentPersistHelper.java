@@ -75,23 +75,28 @@ public class CommentPersistHelper {
     }
   }
 
-  public String stringifyComments(int numComments, boolean sortAscending) {
+  /** Stringifies the comments in the desired order, including pagination */
+  public String stringifyComments(int numComments, boolean sortAscending, int from) {
     Gson gson = new Gson();
     List<Comment> send = new ArrayList<>(numComments);
 
+    if(from < 0) {
+      from = 0;
+    }
+
     if(sortAscending) {
       // Send the first numComments entries
-      for(int i = 0; i < numComments && i < comments.size(); i++) {
+      for(int i = from; i < numComments + from && i < comments.size(); i++) {
         send.add(comments.get(i));
       }
     } else {
       // Send the last numComments entries 
       if(numComments > comments.size()) {
-        for(int i = comments.size() - 1; i >= 0; i--) {
+        for(int i = comments.size() - 1 - from; i >= 0; i--) {
           send.add(comments.get(i));
         }
       } else {
-        for(int i = comments.size() - 1; i >= comments.size() - numComments; i--) {
+        for(int i = comments.size() - 1 - from; i >= comments.size() - numComments - from; i--) {
             send.add(comments.get(i));
         }
       }

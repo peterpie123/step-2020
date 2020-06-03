@@ -35,6 +35,8 @@ public class DataServlet extends HttpServlet {
   private static final String SORT_ASCENDING_QUERY = "sort-ascending";
   /** Parameter which contains the ID's of the comments to delete */
   private static final String DELETE_PARAMETER = "delete";
+  /** Query string that tells which comment to start at */
+  private static final String PAGINATION_START = "pagination";
 
   private static CommentPersistHelper comments;
 
@@ -47,9 +49,15 @@ public class DataServlet extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     int numComments = DEFAULT_COMMENT_NUM;
     boolean sortAscending = true;
+    // Where to start retrieving comments for pagination purposes
+    int from = 0;
 
     if(request.getParameter(NUM_COMMENTS_QUERY) != null) {
-      numComments = Integer.parseInt(request.getParameter(NUM_COMMENTS_QUERY));
+      try {
+        numComments = Integer.parseInt(request.getParameter(NUM_COMMENTS_QUERY));
+      } catch(NumberFormatException e) {
+        // Ignore and use default
+      }
       // Revert to default if user specified an invalid number
       if(numComments <= 0) {
         numComments = DEFAULT_COMMENT_NUM;
@@ -58,9 +66,19 @@ public class DataServlet extends HttpServlet {
     if(request.getParameter(SORT_ASCENDING_QUERY) != null) {
       sortAscending = Boolean.parseBoolean(request.getParameter(SORT_ASCENDING_QUERY));
     }
+    if(request.getParameter(PAGINATION_START) != null) {
+      try {
+        from = Integer.parseInt(request.getParameter(PAGINATION_START));
+      } catch(NumberFormatException e) {
+        // Ignore and use default
+      }
+      if(from < 0) {
+        from = 0;
+      }
+    }
 
     response.setContentType("application/json;");
-    response.getWriter().println(comments.stringifyComments(numComments, sortAscending));
+    response.getWriter().println(comments.stringifyComments(numComments, sortAscending, from));
     // Send the total number of comments
     response.addIntHeader(TOTAL_NUMBER_HEADER, comments.getNumComments());
   }

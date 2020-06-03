@@ -53,6 +53,8 @@ const DELETE_QUERY_STRING = 'delete';
 const SORT_QUERY_STRING = 'sort-ascending';
 /** ID of the pagination container for comments */
 const PAGINATION_CONTAINER = 'comment-pagination-container';
+/** Query string which indicates which comment to start at for pagination purposes */
+const PAGINATION_START = 'pagination';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -141,13 +143,15 @@ function commentSort(sortDirection) {
 
 /** Navigates the comments list to the given page number */
 function paginate(num) {
-  console.log(num);
+  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+
+  refreshComments((num - 1) * numEachPage);
 }
 
 /** Adds the pagination section */
 function addPagination() {
   // Number of comments on each page
-  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)
+  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
   let numPages = Math.ceil(totalNumComments / numEachPage);
 
   // Only add pagination if we need to
@@ -162,8 +166,9 @@ function addPagination() {
   }
 }
 
-/** Retrieves comments from the server and places them on the DOM, clearing existing comments */
-function refreshComments() {
+/** Retrieves comments from the server and places them on the DOM, clearing existing comments 
+ *  By default, starts reading from the first comment (no pagination) */
+function refreshComments(from = 0) {
   deleteChildren(COMMENTS_CONTAINER);
   pageComments = [];
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
@@ -171,7 +176,7 @@ function refreshComments() {
   // Construct a query string with the appropriate number of comments being retrieved
   fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` +
     `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}&` +
-    `${SORT_QUERY_STRING}=${ascending}`).then(
+    `${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}`).then(
     /* Convert from response stream */r => {
         // Get the total number of stored comments
         totalNumComments = r.headers.get(TOTAL_NUMBER_HEADER);
