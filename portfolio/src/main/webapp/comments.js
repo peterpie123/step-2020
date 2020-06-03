@@ -39,6 +39,18 @@ const NUM_COMMENTS_FIELD = 'num-comments';
 const TOTAL_NUMBER_HEADER = "num-comments";
 // Prefix for the ID of the div containing an entire comment. Postfixed by the comment ID
 const COMMENT_CONTAINER_PREFIX = 'comment-';
+// Class on the container for each individual comment
+const COMMENT_CLASS = 'comment';
+// Class applied to a comment when it's marked for deletion 
+const COMMENT_DELETE_CLASS = 'comment-delete';
+// Class for the clickable button for a comment
+const COMMENT_SELECT_CLASS = 'comment-toggle';
+// Class which indicates the text part of a comment
+const COMMENT_TEXT_CLASS = 'comment-text';
+// Query string used to mark which comments will be deleted
+const DELETE_QUERY_STRING = 'delete';
+// Query string used to note whether comments are being sorted ascending or descending
+const SORT_QUERY_STRING = 'sort-ascending';
 
 // List of comments currently on the page
 let pageComments = [];
@@ -59,21 +71,22 @@ document.addEventListener('DOMContentLoaded', () => {
 function addSingleComment(comment) {
   let containerId = COMMENT_CONTAINER_PREFIX + comment.id;
 
-  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ containerId, undefined, 'comment');
+  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ containerId,
+                /* onClick = */ undefined, /* class = */ COMMENT_CLASS);
   // Format the time nicely, by starting at the epoch and setting the milliseconds
   let date = new Date(0);
   date.setUTCMilliseconds(comment.timestamp);
 
   // ID for the container which houses the information for a comment
   let contentId = containerId + '-content';
-  appendElement(containerId, 'div', '', contentId, undefined, 'comment-text');
+  appendElement(containerId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
   // Add the name, time, and content
   appendElement(contentId, 'p', `<b>${comment.name}</b>\t${date.toLocaleTimeString()}`);
   appendElement(contentId, 'p', comment.text);
 
   // Add the element that will toggle deleting this comment
   appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id),
-    'comment-toggle');
+    COMMENT_SELECT_CLASS);
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments
@@ -86,7 +99,7 @@ function addComments(comments, pushComments = true) {
       pageComments.push(comment);
     }
     if (commentsToDelete.has(comment.id)) {
-      addClass(COMMENT_CONTAINER_PREFIX + comment.id, 'comment-delete');
+      addClass(COMMENT_CONTAINER_PREFIX + comment.id, COMMENT_DELETE_CLASS);
     }
   });
 }
@@ -131,7 +144,8 @@ function retrieveComments() {
 
   // Construct a query string with the appropriate number of comments being retrieved
   fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` +
-    `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}&sort-ascending=${ascending}`).then(
+    `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}&` +
+    `${SORT_QUERY_STRING}=${ascending}`).then(
     /* Convert from response stream */r => {
         // Get the total number of stored comments
         numComments = r.headers.get(TOTAL_NUMBER_HEADER);
@@ -146,12 +160,12 @@ function prepareDelete(id) {
   if (commentsToDelete.has(id)) {
     // Remove from deletion
     commentsToDelete.delete(id);
-    removeClass(COMMENT_CONTAINER_PREFIX + id, 'comment-delete');
+    removeClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
   } else {
     // Add to deletion
     commentsToDelete.add(id);
-    addClass(COMMENT_CONTAINER_PREFIX + id, 'comment-delete');
+    addClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
   }
 }
 
@@ -163,10 +177,10 @@ function deleteComments() {
       if (index > 0) {
         deleteString += '&';
       }
-      deleteString += 'delete=' + id;
+      deleteString += DELETE_QUERY_STRING + '=' + id;
     });
 
-    fetch(`/data${deleteString}`, {
+    fetch(`${COMMENTS_URL}${deleteString}`, {
       method: 'DELETE',
     }).then(r => retrieveComments());
   }
