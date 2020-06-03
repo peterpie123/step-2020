@@ -58,12 +58,14 @@ let pageComments = [];
 let commentsSort = COMMENTS_SORT_NEWEST;
 // Comments currently selected for deletion
 let commentsToDelete = new Set();
+// The total number of comments on the server. Used for pagination
+let totalComments;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
   if (documentHasElement(COMMENTS_CONTAINER)) {
     // Retrieve comments data from the servlet and add to DOM
-    retrieveComments();
+    refreshComments();
   }
 });
 
@@ -131,15 +133,19 @@ function commentSort(sortDirection) {
     }
 
     // Finally, re-update the comments section
-    retrieveComments();
+    refreshComments();
   }
 }
 
+/** Adds the pagination section */
+function addPagination() {
+
+}
+
 /** Retrieves comments from the server and places them on the DOM, clearing existing comments */
-function retrieveComments() {
+function refreshComments() {
   deleteChildren(COMMENTS_CONTAINER);
   pageComments = [];
-  let numComments;
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
 
   // Construct a query string with the appropriate number of comments being retrieved
@@ -148,10 +154,11 @@ function retrieveComments() {
     `${SORT_QUERY_STRING}=${ascending}`).then(
     /* Convert from response stream */r => {
         // Get the total number of stored comments
-        numComments = r.headers.get(TOTAL_NUMBER_HEADER);
+        totalComments = r.headers.get(TOTAL_NUMBER_HEADER);
         return r.json();
       }).then(comments => {
         addComments(comments);
+        addPagination();
       });
 }
 
@@ -182,12 +189,12 @@ function deleteComments() {
 
     fetch(`${COMMENTS_URL}${deleteString}`, {
       method: 'DELETE',
-    }).then(r => retrieveComments());
+    }).then(r => refreshComments());
   }
 }
 
 // Add functions to window so onclick works in HTML
 window.commentSort = commentSort;
-window.retrieveComments = retrieveComments;
+window.refreshComments = refreshComments;
 window.prepareDelete = prepareDelete;
 window.deleteComments = deleteComments
