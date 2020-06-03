@@ -15,50 +15,50 @@
 // Import utlity functions
 import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass } from './script.js';
 
-// ID of the comments container
+/** ID of the comments container */
 const COMMENTS_CONTAINER = 'comments-container';
-// URL for the comments servlet
+/** URL for the comments servlet */
 const COMMENTS_URL = '/data';
-// Indicates that comments should be sorted with the newest on top
+/** Indicates that comments should be sorted with the newest on top */
 const COMMENTS_SORT_NEWEST = 1;
-// Indicates that comments should be sorted with the oldest on top
+/** Indicates that comments should be sorted with the oldest on top */
 const COMMENTS_SORT_OLDEST = -1;
-// ID of the icon that indicates which direction to sort
+/** ID of the icon that indicates which direction to sort */
 const COMMENTS_SORT_ICON = 'icon-selected';
-// Icon corresponding to having the newest comment on top
+/** Icon corresponding to having the newest comment on top */
 const COMMENTS_ICON_NEWEST = 'fa-chevron-circle-up';
-// Icon corresponding to having the oldest comment on top
+/** Icon corresponding to having the oldest comment on top */
 const COMMENTS_ICON_OLDEST = 'fa-chevron-circle-down';
-// Query string for indicating how many comments to retrieve
+/** Query string for indicating how many comments to retrieve */
 const NUM_COMMENTS_QUERY = 'num-comments';
-// Property for what the user typed/selected in an input field
+/** Property for what the user typed/selected in an input field */
 const TEXT_SELECTION = 'value';
-// ID of the field where the user selects how many comments to retrieve
+/** ID of the field where the user selects how many comments to retrieve */
 const NUM_COMMENTS_FIELD = 'num-comments';
-// Header containing the total number of comments stored
+/** Header containing the total number of comments stored */
 const TOTAL_NUMBER_HEADER = "num-comments";
-// Prefix for the ID of the div containing an entire comment. Postfixed by the comment ID
+/** Prefix for the ID of the div containing an entire comment. Postfixed by the comment ID */
 const COMMENT_CONTAINER_PREFIX = 'comment-';
-// Class on the container for each individual comment
+/** Class on the container for each individual comment */
 const COMMENT_CLASS = 'comment';
-// Class applied to a comment when it's marked for deletion 
+/** Class applied to a comment when it's marked for deletion  */
 const COMMENT_DELETE_CLASS = 'comment-delete';
-// Class for the clickable button for a comment
+/** Class for the clickable button for a comment */
 const COMMENT_SELECT_CLASS = 'comment-toggle';
-// Class which indicates the text part of a comment
+/** Class which indicates the text part of a comment */
 const COMMENT_TEXT_CLASS = 'comment-text';
-// Query string used to mark which comments will be deleted
+/** Query string used to mark which comments will be deleted */
 const DELETE_QUERY_STRING = 'delete';
-// Query string used to note whether comments are being sorted ascending or descending
+/** Query string used to note whether comments are being sorted ascending or descending */
 const SORT_QUERY_STRING = 'sort-ascending';
 
-// List of comments currently on the page
+/** List of comments currently on the page */
 let pageComments = [];
-// How the comments are currently sorted
+/** How the comments are currently sorted */
 let commentsSort = COMMENTS_SORT_NEWEST;
-// Comments currently selected for deletion
+/** Comments currently selected for deletion */
 let commentsToDelete = new Set();
-// The total number of comments on the server. Used for pagination
+/** The total number of comments on the server. Used for pagination */
 let totalComments;
 
 // Perform necessary setup
@@ -176,6 +176,7 @@ function prepareDelete(id) {
   }
 }
 
+/** Deletes all the comments that have been signaled for deletion */
 function deleteComments() {
   if (commentsToDelete.size > 0) {
     let deleteString = '?';
