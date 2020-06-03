@@ -155,11 +155,11 @@ function deleteComments() {
   if(commentsToDelete.size > 0) {
     let deleteString = '?';
 
-    commentsToDelete.forEach((id, index) => {
-      deleteString += 'delete=' + id;
-      if(index < commentsToDelete.size - 1) {
+    Array.from(commentsToDelete).forEach((id, index) => {
+      if(index > 0) {
         deleteString += '&';
       }
+      deleteString += 'delete=' + id;
     });
 
     fetch(`/data${deleteString}`, {

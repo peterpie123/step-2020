@@ -104,11 +104,7 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    Map<String,String[]> map = request.getParameterMap();
-    System.out.println(map);
-    System.out.println(Arrays.toString(request.getParameterValues("delete")));
-
-    /*String[] toDelete = request.getParameter("delete");
+    String[] toDelete = request.getParameterValues("delete");
     for(int i = 0; i < toDelete.length; i++) {
         try {
           int id = Integer.parseInt(toDelete[i]);
@@ -116,6 +112,6 @@ public class DataServlet extends HttpServlet {
         } catch(NumberFormatException e) {
           // Ignore, as should never happen
         }
-    }*/
+    }
   }
 }
