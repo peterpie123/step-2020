@@ -45,6 +45,10 @@ const HTML_CHECKBOX_TAG = '<input type="checkbox"/>'
 const TEXT_SELECTION = 'value';
 // Property for whether a checkbox is checked or not
 const CHECKBOX_IS_CHECKED = 'checked';
+// ID of the comments container
+const COMMENTS_CONTAINER = 'comments-container';
+// URL for the comments servlet
+const COMMENTS_URL = '/data';
 
 // Dictionary of all the facts that can be pulled up
 const FACTS = {
@@ -61,17 +65,30 @@ const FACTS_NAMES_LOWERCASE = FACTS_NAMES.map(v => v.toLowerCase());
 
 // Store what the user favorites
 let userFavorites = new Set();
+// Number of comments currently on the page
+let numComments = 0;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
-  // Populate from built-in favorites automatically when typing
-  document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
-    checkAgree();
+  // Populate from built-in favorites automatically when typing, when present
+  if(documentHasElement(USER_FAVORITE_INPUT_ID)) {
+    document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
+      checkAgree();
 
-    if (e.key == ENTER_CODE) {
-      processNewFavorite();
-    }
-  });
+      if (e.key == ENTER_CODE) {
+        processNewFavorite();
+      }
+    });
+  }
+
+  if(documentHasElement(COMMENTS_CONTAINER)) {
+    // Retrieve comments data from the servlet and add to DOM
+    fetch(COMMENTS_URL).then(/* Convert from response stream */r => r.json()).then(comments => {
+      comments.forEach(comment => {
+        addComment(comment);
+      });
+    });
+  }
 });
 
 /* Returns a (pseudo)random element of the given array */
@@ -102,6 +119,11 @@ function findSubstrings(arr, substring) {
   });
 
   return out;
+}
+
+/* Returns true if the document has an element with the given ID */
+function documentHasElement(elementId) {
+  return document.getElementById(elementId) ? true : false;
 }
 
 /* Appends a new HTML element to the given parent ID with the given information */
@@ -228,4 +250,15 @@ function removeUserFavorites() {
     // Add placeholder message
     appendElement(USER_FAVORITE_LIST_ID, 'p', FAVORITE_PLACEHOLDER_TEXT, FAVORITE_PLACEHOLDER_ID);
   }
+}
+
+/* Adds the given comment to the page */
+function addComment(comment) {
+  let id = `comment-${numComments}`;
+
+  appendElement(COMMENTS_CONTAINER, 'div', '', /* id = */ id);
+  appendElement(id, 'p', `<b>${comment.name}</b>\t${comment.datePosted}`);
+  appendElement(id, 'p', comment.text);
+
+  numComments++;
 }

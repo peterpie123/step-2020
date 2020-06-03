@@ -1,44 +1,45 @@
 body {
-    margin: 0;
+  margin: 0;
 }
 
 h1,
 h2,
 h3 {
-    font-family: Lato;
+  font-family: Lato;
 }
 
 hr {
-    border-top: 1px solid #b2b2b7;
+  border-top: 1px solid #b2b2b7;
 }
 
 img,
 video {
-    border-radius: 5px;
+  border-radius: 5px;
 }
 
 button,
 select,
-input {
-    border-radius: 3px;
-    border: 1px solid black;
+input,
+textarea {
+  border-radius: 3px;
+  border: 1px solid black;
 }
 
 .mickey-media {
-    width: 400px;
+  width: 400px;
 }
 
 .social-icon {
-    width: 48px;
-    padding: 0 10px 0 10px;
+  width: 48px;
+  padding: 0 10px 0 10px;
 }
 
 #social-container {
-    text-align: center;
+  text-align: center;
 }
 
 #profile-picture {
-    width: 100%
+  width: 100%
 }
 
 #content {
@@ -49,36 +50,36 @@ input {
 }
 
 #nav-list {
-    background-color: #b2b2b7;
-    overflow: hidden;
-    margin: 0;
+  background-color: #b2b2b7;
+  overflow: hidden;
+  margin: 0;
 }
 
 #nav-bar a {
-    font-family: Roboto;
-    padding: 10px;
-    text-decoration: none;
-    display: block;
+  font-family: Roboto;
+  padding: 10px;
+  text-decoration: none;
+  display: block;
 }
 
 .nav-item {
-    display: inline;
-    float: left;
+  display: inline;
+  float: left;
 }
 
 .nav-active {
-    background-color: black;
-    border-radius: 5px;
-    color: white;
+  background-color: black;
+  border-radius: 5px;
+  color: white;
 }
 
 .nav-inactive {
-    color: black;
+  color: black;
 }
 
 .nav-item a:hover {
-    background-color: #468887;
-    border-radius: 5px;
+  background-color: #468887;
+  border-radius: 5px;
 }
 
 #sidebar {
@@ -90,15 +91,57 @@ input {
 }
 
 #fav-list {
-    padding: 0;
-    margin: 8px;
+  padding: 0;
+  margin: 8px;
 }
 
 #fav-list label {
-    display: block;
+  display: block;
 }
 
 #agree-container li:hover {
-    cursor: pointer;
-    color: #468887;
+  cursor: pointer;
+  color: #468887;
+}
+
+#comments-create {
+  border: 1px solid black;
+  border-radius: 5px;
+  margin: 10px auto;
+  padding: 16px;
+  background: #e6e6e6;
+}
+
+#comments-create h1 {
+  padding: 20px 0;
+  text-align: center;
+  background-color: #b3b3b8;
+  margin-top: 0;
+  margin: -16px -16px 16px -16px;
+  border-radius: 5px;
+}
+
+#comments-container div {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  margin-top: 5px;
+  padding-left: 10px;
+}
+
+#comment-name,
+#comment-text,
+#comment-submit {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 5px;
+  box-sizing: border-box;
+}
+
+#comment-submit {
+  background-color: #b3b3b8;
+}
+
+#comments-create input[type="submit"]:hover {
+  background-color: #468887;
+  cursor: pointer;
 }
