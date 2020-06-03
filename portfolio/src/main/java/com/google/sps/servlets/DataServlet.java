@@ -16,17 +16,13 @@ package com.google.sps.servlets;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.io.IOException;
+import java.util.Collections;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.gson.Gson;
-import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -42,24 +38,29 @@ public class DataServlet extends HttpServlet {
   private static final String NUM_COMMENTS_QUERY = "num-comments";
   /** Header containing the total number of comments stored */
   private static final String TOTAL_NUMBER_HEADER = "num-comments";
-  
-  private static List<Comment> comments = new ArrayList<>();
+
+  private static List<Comment> comments;
 
   @Override
   public void init() {
     // Retrieve stored comments
-    Query query = new Query("Comment").addSort(Comment.COMMENT_TIMESTAMP, SortDirection.DESCENDING);
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    PreparedQuery results = datastore.prepare(query);
+    comments = Comment.loadComments();
+  }
 
-    results.asList(FetchOptions.Builder.withDefaults()).forEach(entity -> {
-      comments.add(Comment.fromEntity(entity));
-    });
+  private static String stringifyComments(int numComments) {
+    Gson gson = new Gson();
+    List<Comment> send = new ArrayList<>(numComments);
+
+    // Respond with up to numComments comments
+    for(int i = 0; i < numComments && i < comments.size(); i++) {
+      send.add(comments.get(i));
+    }
+
+    return gson.toJson(send);
   }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    Gson gson = new Gson();
     int numComments = DEFAULT_COMMENT_NUM;
 
     if(request.getParameter(NUM_COMMENTS_QUERY) != null) {
@@ -70,14 +71,8 @@ public class DataServlet extends HttpServlet {
       }
     }
 
-    // Respond with up to numComments comments
-    List<Comment> send = new ArrayList<>(numComments);
-    for(int i = 0; i < numComments && i < comments.size(); i++) {
-      send.add(comments.get(i));
-    }
-
     response.setContentType("application/json;");
-    response.getWriter().println(gson.toJson(send));
+    response.getWriter().println(stringifyComments(numComments));
     // Send the total number of comments
     response.addIntHeader(TOTAL_NUMBER_HEADER, comments.size());
   }
@@ -88,12 +83,39 @@ public class DataServlet extends HttpServlet {
     Comment comment = Comment.fromHttpRequest(request);
     comments.add(comment);
 
-    // Store the comment so it persists
-    Entity entity = comment.toEntity();
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    datastore.put(entity);
+    Collections.sort(comments);
     
     // Redirect back to the home page.
     response.sendRedirect("/index.html");
+  }
+
+  /** Deletes the given comment from the comments list and data storage */
+  private static void deleteComment(int id) {
+    for(int i = 0; i < comments.size(); i++) {
+      Comment comment = comments.get(i);
+      if(comment.getId() == id) {
+        // Remove the comment from persistent storage and the comments list
+        comment.removePersistent();
+        comments.remove(i);
+        break;
+      }
+    }
+  }
+
+  @Override
+  public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    Map<String,String[]> map = request.getParameterMap();
+    System.out.println(map);
+    System.out.println(Arrays.toString(request.getParameterValues("delete")));
+
+    /*String[] toDelete = request.getParameter("delete");
+    for(int i = 0; i < toDelete.length; i++) {
+        try {
+          int id = Integer.parseInt(toDelete[i]);
+          deleteComment(id);
+        } catch(NumberFormatException e) {
+          // Ignore, as should never happen
+        }
+    }*/
   }
 }

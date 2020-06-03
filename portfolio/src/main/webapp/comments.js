@@ -152,7 +152,22 @@ function prepareDelete(id) {
 }
 
 function deleteComments() {
-  console.log(commentsToDelete);
+  if(commentsToDelete.size > 0) {
+    let deleteString = '?';
+
+    commentsToDelete.forEach((id, index) => {
+      deleteString += 'delete=' + id;
+      if(index < commentsToDelete.size - 1) {
+        deleteString += '&';
+      }
+    });
+
+    fetch(`/data${deleteString}`, {
+    method: 'DELETE',
+  }).then(r => console.log('deleted!'));
+  }
+  
+  
 }
 
 // Add functions to window so onclick works in HTML

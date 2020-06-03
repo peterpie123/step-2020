@@ -17,17 +17,26 @@ package com.google.sps.data;
 import java.util.Date;
 import java.text.DateFormat;
 import java.lang.Comparable;
+import java.util.List;
+import java.util.ArrayList;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
 import javax.servlet.http.HttpServletRequest;
 
 /** Represents a single comment from a user. */
 public class Comment implements Comparable<Comment> {
   /** Key for the name of the commenter */
-  public static final String COMMENT_NAME = "name";
+  private static final String COMMENT_NAME = "name";
   /** Key for the comment contents */
-  public static final String COMMENT_TEXT = "comment";
+  private static final String COMMENT_TEXT = "comment";
   /** Key for the timestamp */
-  public static final String COMMENT_TIMESTAMP = "timestamp";
+  private static final String COMMENT_TIMESTAMP = "timestamp";
 
   private static int commentCount = 0;
 
@@ -35,40 +44,84 @@ public class Comment implements Comparable<Comment> {
   private final String name;
   private final long timestamp;
   private final int id;
+  /** The key associated with the entity that keeps this comment persist in storage. */
+  private final Key key;
 
+  /** Will automatically add to persistent storage */
   private Comment(String text, String name) {
     this(text, name, System.currentTimeMillis());
   }
 
-  /** Create a comment with a posted date of given milliseconds from the epoch */
+  /** Create a comment with a posted date of given milliseconds from the epoch. 
+   *  Automatically adds the new comment to persistent storage */
   private Comment(String text, String name, long timestamp) {
     this.text = text;
     this.name = name;
     this.timestamp = timestamp;
+    this.key = persistStore();
 
+    // Dynamically assign ID
     id = commentCount++;
   }
 
-  /** Create a new Comment from an Entity representing a comment */
-  public static Comment fromEntity(Entity entity) {
-    String text = (String) entity.getProperty(COMMENT_TEXT);
-    String name = (String) entity.getProperty(COMMENT_NAME);
-    long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
-    return new Comment(text, name, time);
+  /** Will NOT automatically add the comment to persistent storage */
+  private Comment(String text, String name, long timestamp, Key key) {
+    this.text = text;
+    this.name = name;
+    this.timestamp = timestamp;
+    this.key = key;
+
+    // Dynamically assign ID
+    id = commentCount++;
   }
 
-  /** Create a new Comment from an incoming HTTP POST */
-  public static Comment fromHttpRequest(HttpServletRequest request) {
-    return new Comment(request.getParameter(COMMENT_TEXT), request.getParameter(COMMENT_NAME));
-  }
-
-  /** Converts this comment to an entity */
-  public Entity toEntity() {
+  /** Adds the given comment to persistent storage */
+  private Key persistStore() {
     Entity entity = new Entity("Comment");
     entity.setProperty(COMMENT_TEXT, getText());
     entity.setProperty(COMMENT_NAME, getName());
     entity.setProperty(COMMENT_TIMESTAMP, getTimestamp());
-    return entity;
+
+    // Store the comment so it persists
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    datastore.put(entity);
+
+    return entity.getKey();
+  }
+
+  /** Create a new Comment from an Entity representing a comment */
+  private static Comment fromEntity(Entity entity) {
+    String text = (String) entity.getProperty(COMMENT_TEXT);
+    String name = (String) entity.getProperty(COMMENT_NAME);
+    long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
+    return new Comment(text, name, time, entity.getKey());
+  }
+
+  /** Create a new Comment from an incoming HTTP POST. 
+   *  This will also store the new comment so it persists. */
+  public static Comment fromHttpRequest(HttpServletRequest request) {
+    return new Comment(request.getParameter(COMMENT_TEXT),
+                       request.getParameter(COMMENT_NAME));
+  }
+
+  /** Loads comments from persist storage and returns all comments*/
+  public static List<Comment> loadComments() {
+    List<Comment> comments = new ArrayList<>();
+
+    Query query = new Query("Comment").addSort(Comment.COMMENT_TIMESTAMP, SortDirection.DESCENDING);
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    PreparedQuery results = datastore.prepare(query);
+
+    results.asList(FetchOptions.Builder.withDefaults()).forEach(entity -> {
+      comments.add(fromEntity(entity));
+    });
+    return comments;
+  }
+
+  /** Removes the given comment from persistent storage */
+  public void removePersistent() {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    datastore.delete(this.key);
   }
 
   public String getText() {
