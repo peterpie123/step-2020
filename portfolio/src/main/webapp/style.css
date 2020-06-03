@@ -204,6 +204,7 @@ textarea {
 
 .comment-delete {
   color: darkgrey;
+  text-decoration: line-through;
 }
 
 .comment-delete .comment-toggle {
@@ -225,4 +226,23 @@ textarea {
 #comment-pagination-container input[type="button"]:hover {
   background-color: #b3b3b8;
   cursor: pointer;
+}
+
+#trash-can {
+  color: lightgrey;
+}
+
+#trash-can:hover {
+  color: lightgrey;
+  cursor: auto;
+}
+
+.trash-active {
+  color: #d42f26;
+  cursor: pointer;
+}
+
+.trash-active:hover {
+  cursor: pointer;
+  color: #b3b3b8;
 }

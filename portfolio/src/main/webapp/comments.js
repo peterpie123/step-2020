@@ -59,6 +59,10 @@ const PAGINATION_START = 'pagination';
 const PAGINATION_SELECTED = 'pagination-selected';
 /** Class name of the pagination buttons */
 const PAGINATION_SELECT = 'pagination-select';
+/** ID of the delete icon */
+const DELETE_ICON = 'trash-can';
+/** Class present when delete button is active (i.e. comments to delete) */
+const DELETE_ACTIVE = 'trash-active';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -207,11 +211,20 @@ function prepareDelete(id) {
     // Remove from deletion
     commentsToDelete.delete(id);
     removeClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
-
+    
+    // Remove color of trash can if none are to be deleted
+    if(commentsToDelete.size == 0) {
+      removeClass(DELETE_ICON, DELETE_ACTIVE);
+    }
   } else {
     // Add to deletion
     commentsToDelete.add(id);
     addClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
+
+    // Add color fo trash can if this is the first to be added
+    if(commentsToDelete.size === 0) {
+      addClass(DELETE_ICON, DELETE_ACTIVE);
+    }
   }
 }
 
