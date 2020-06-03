@@ -51,6 +51,8 @@ const COMMENT_TEXT_CLASS = 'comment-text';
 const DELETE_QUERY_STRING = 'delete';
 /** Query string used to note whether comments are being sorted ascending or descending */
 const SORT_QUERY_STRING = 'sort-ascending';
+/** ID of the pagination container for comments */
+const PAGINATION_CONTAINER = 'comment-pagination-container';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -59,7 +61,7 @@ let commentsSort = COMMENTS_SORT_NEWEST;
 /** Comments currently selected for deletion */
 let commentsToDelete = new Set();
 /** The total number of comments on the server. Used for pagination */
-let totalComments;
+let totalNumComments;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -137,9 +139,27 @@ function commentSort(sortDirection) {
   }
 }
 
+/** Navigates the comments list to the given page number */
+function paginate(num) {
+  console.log(num);
+}
+
 /** Adds the pagination section */
 function addPagination() {
+  // Number of comments on each page
+  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)
+  let numPages = Math.ceil(totalNumComments / numEachPage);
 
+  // Only add pagination if we need to
+  if (numPages > 1) {
+    appendElement(COMMENTS_CONTAINER, 'div', '', PAGINATION_CONTAINER);
+
+    // Add a pagination button for each page of comments
+    for (let i = 1; i <= numPages; i++) {
+      appendElement(PAGINATION_CONTAINER, 'span', `<input type="button" value="${i}"/>`,
+        undefined, /* onclick */ () => paginate(i));
+    }
+  }
 }
 
 /** Retrieves comments from the server and places them on the DOM, clearing existing comments */
@@ -154,7 +174,7 @@ function refreshComments() {
     `${SORT_QUERY_STRING}=${ascending}`).then(
     /* Convert from response stream */r => {
         // Get the total number of stored comments
-        totalComments = r.headers.get(TOTAL_NUMBER_HEADER);
+        totalNumComments = r.headers.get(TOTAL_NUMBER_HEADER);
         return r.json();
       }).then(comments => {
         addComments(comments);
@@ -198,4 +218,4 @@ function deleteComments() {
 window.commentSort = commentSort;
 window.refreshComments = refreshComments;
 window.prepareDelete = prepareDelete;
-window.deleteComments = deleteComments
+window.deleteComments = deleteComments;
