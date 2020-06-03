@@ -209,3 +209,20 @@ textarea {
 .comment-delete .comment-toggle {
   background-color: #d42f26;
 }
+
+#comment-pagination-container {
+  margin: 5px 0;
+}
+
+.pagination-select input[type="button"]{
+  margin-right: 3px;
+}
+
+#pagination-selected input[type="button"] {
+  background-color: #468887;
+}
+
+#comment-pagination-container input[type="button"]:hover {
+  background-color: #b3b3b8;
+  cursor: pointer;
+}

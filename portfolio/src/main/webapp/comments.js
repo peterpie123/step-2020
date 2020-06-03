@@ -55,6 +55,10 @@ const SORT_QUERY_STRING = 'sort-ascending';
 const PAGINATION_CONTAINER = 'comment-pagination-container';
 /** Query string which indicates which comment to start at for pagination purposes */
 const PAGINATION_START = 'pagination';
+/** ID of the pagination button that's selected */
+const PAGINATION_SELECTED = 'pagination-selected';
+/** Class name of the pagination buttons */
+const PAGINATION_SELECT = 'pagination-select';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -64,6 +68,8 @@ let commentsSort = COMMENTS_SORT_NEWEST;
 let commentsToDelete = new Set();
 /** The total number of comments on the server. Used for pagination */
 let totalNumComments;
+/** The current page of comments that's on */
+let currCommentPage = 1;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -143,6 +149,7 @@ function commentSort(sortDirection) {
 
 /** Navigates the comments list to the given page number */
 function paginate(num) {
+  currCommentPage = num;
   let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
 
   refreshComments((num - 1) * numEachPage);
@@ -160,8 +167,15 @@ function addPagination() {
 
     // Add a pagination button for each page of comments
     for (let i = 1; i <= numPages; i++) {
+      // If this is the current comments page, add special styling
+      let buttonId = undefined;
+      if(i == currCommentPage) {
+        buttonId = PAGINATION_SELECTED;
+      }
+
       appendElement(PAGINATION_CONTAINER, 'span', `<input type="button" value="${i}"/>`,
-        undefined, /* onclick */ () => paginate(i));
+        buttonId, /* onclick */ () => paginate(i), PAGINATION_SELECT);
+      
     }
   }
 }
