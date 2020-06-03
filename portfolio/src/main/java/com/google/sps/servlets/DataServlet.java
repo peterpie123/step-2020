@@ -15,6 +15,7 @@
 package com.google.sps.servlets;
 
 import java.io.IOException;
+import java.util.Arrays;
 import com.google.sps.data.CommentPersistHelper;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -76,13 +77,13 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     String[] toDelete = request.getParameterValues(DELETE_PARAMETER);
-    for(int i = 0; i < toDelete.length; i++) {
-        try {
-          int id = Integer.parseInt(toDelete[i]);
-          comments.deleteComment(id);
-        } catch(NumberFormatException e) {
-          // Ignore, as should never happen
-        }
-    }
+    Arrays.stream(toDelete).forEach(idStr -> {
+      try {
+        int id = Integer.parseInt(idStr);
+        comments.deleteComment(id);
+      } catch(NumberFormatException e) {
+        // Ignore, as should never happen
+      }
+    });
   }
 }
