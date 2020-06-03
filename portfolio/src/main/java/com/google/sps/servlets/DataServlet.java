@@ -24,6 +24,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.FetchOptions;
 import com.google.gson.Gson;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
@@ -35,34 +36,25 @@ import javax.servlet.http.HttpServletResponse;
 /** Servlet that returns some example content. TODO: modify this file to handle comments data */
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
-  /** Key for the name of the commenter */
-  private static final String COMMENT_NAME = "name";
-  /** Key for the comment contents */
-  private static final String COMMENT_TEXT = "comment";
-  /** Key for the timestamp */
-  private static final String COMMENT_TIMESTAMP = "timestamp";
   /** Default number of comments to send */
   private static final int DEFAULT_COMMENT_NUM = 25;
   /** Query string which contains the number of comments to send */
   private static final String NUM_COMMENTS_QUERY = "num-comments";
   /** Header containing the total number of comments stored */
   private static final String TOTAL_NUMBER_HEADER = "num-comments";
-
+  
   private static List<Comment> comments = new ArrayList<>();
 
   @Override
   public void init() {
     // Retrieve stored comments
-    Query query = new Query("Comment").addSort(COMMENT_TIMESTAMP, SortDirection.DESCENDING);
+    Query query = new Query("Comment").addSort(Comment.COMMENT_TIMESTAMP, SortDirection.DESCENDING);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
-    for(Entity entity : results.asIterable()) {
-      String text = (String) entity.getProperty(COMMENT_TEXT);
-      String name = (String) entity.getProperty(COMMENT_NAME);
-      long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
 
-      comments.add(new Comment(text, name, time));
-    }
+    results.asList(FetchOptions.Builder.withDefaults()).forEach(entity -> {
+      comments.add(Comment.fromEntity(entity));
+    });
   }
 
   @Override
@@ -93,15 +85,11 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     // Create and add the new comment
-    Comment comment = new Comment(request.getParameter(COMMENT_TEXT), 
-                                  request.getParameter(COMMENT_NAME));
+    Comment comment = Comment.fromHttpRequest(request);
     comments.add(comment);
 
     // Store the comment so it persists
-    Entity entity = new Entity("Comment");
-    entity.setProperty(COMMENT_TEXT, comment.getText());
-    entity.setProperty(COMMENT_NAME, comment.getName());
-    entity.setProperty(COMMENT_TIMESTAMP, comment.getTimestamp());
+    Entity entity = comment.toEntity();
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(entity);
     

@@ -17,27 +17,58 @@ package com.google.sps.data;
 import java.util.Date;
 import java.text.DateFormat;
 import java.lang.Comparable;
+import com.google.appengine.api.datastore.Entity;
+import javax.servlet.http.HttpServletRequest;
 
 /** Represents a single comment from a user. */
 public class Comment implements Comparable<Comment> {
-  final private String text;
-  final private String name;
-  final private long timestamp;
-  private final int id;
+  /** Key for the name of the commenter */
+  public static final String COMMENT_NAME = "name";
+  /** Key for the comment contents */
+  public static final String COMMENT_TEXT = "comment";
+  /** Key for the timestamp */
+  public static final String COMMENT_TIMESTAMP = "timestamp";
 
   private static int commentCount = 0;
 
-  public Comment(String text, String name) {
+  private final String text;
+  private final String name;
+  private final long timestamp;
+  private final int id;
+
+  private Comment(String text, String name) {
     this(text, name, System.currentTimeMillis());
   }
 
-  /** Create a calendar with a posted date of given milliseconds from the epoch */
-  public Comment(String text, String name, long timestamp) {
+  /** Create a comment with a posted date of given milliseconds from the epoch */
+  private Comment(String text, String name, long timestamp) {
     this.text = text;
     this.name = name;
     this.timestamp = timestamp;
 
     id = commentCount++;
+  }
+
+  /** Create a new Comment from an Entity representing a comment */
+  public static Comment fromEntity(Entity entity) {
+    String text = (String) entity.getProperty(COMMENT_TEXT);
+    String name = (String) entity.getProperty(COMMENT_NAME);
+    long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
+    return new Comment(text, name, time);
+  }
+
+  /** Create a new Comment from an incoming HTTP POST */
+  public static Comment fromHttpRequest(HttpServletRequest request) {
+    return new Comment(request.getParameter(COMMENT_TEXT), request.getParameter(COMMENT_NAME));
+  }
+
+  /** Converts this comment to an entity */
+  public Entity toEntity() {
+    Entity entity = new Entity("Comment");
+    entity.setProperty(COMMENT_TEXT, getText());
+    entity.setProperty(COMMENT_NAME, getName());
+    entity.setProperty(COMMENT_TIMESTAMP, getTimestamp());
+    return entity;
   }
 
   public String getText() {
