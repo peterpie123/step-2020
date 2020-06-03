@@ -14,20 +14,12 @@
 
 package com.google.sps.servlets;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
 import java.io.IOException;
-import java.util.Collections;
-import com.google.gson.Gson;
-import com.google.sps.data.Comment;
-import com.google.gson.Gson;
+import com.google.sps.data.CommentPersistHelper;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 
 /** Servlet that returns some example content. TODO: modify this file to handle comments data */
 @WebServlet("/data")
@@ -43,37 +35,11 @@ public class DataServlet extends HttpServlet {
   /** Parameter which contains the ID's of the comments to delete */
   private static final String DELETE_PARAMETER = "delete";
 
-  private static List<Comment> comments;
+  private static CommentPersistHelper comments;
 
   @Override
   public void init() {
-    // Retrieve stored comments
-    comments = Comment.loadComments();
-  }
-
-  private static String stringifyComments(int numComments, boolean sortAscending) {
-    Gson gson = new Gson();
-    List<Comment> send = new ArrayList<>(numComments);
-
-    if(sortAscending) {
-      // Send the first numComments entries
-      for(int i = 0; i < numComments && i < comments.size(); i++) {
-        send.add(comments.get(i));
-      }
-    } else {
-      // Send the last numComments entries 
-      if(numComments > comments.size()) {
-        for(int i = comments.size() - 1; i >= 0; i--) {
-          send.add(comments.get(i));
-        }
-      } else {
-        for(int i = comments.size() - 1; i >= comments.size() - numComments; i--) {
-            send.add(comments.get(i));
-        }
-      }
-    }
-
-    return gson.toJson(send);
+    comments = new CommentPersistHelper();
   }
 
   @Override
@@ -93,34 +59,18 @@ public class DataServlet extends HttpServlet {
     }
 
     response.setContentType("application/json;");
-    response.getWriter().println(stringifyComments(numComments, sortAscending));
+    response.getWriter().println(comments.stringifyComments(numComments, sortAscending));
     // Send the total number of comments
-    response.addIntHeader(TOTAL_NUMBER_HEADER, comments.size());
+    response.addIntHeader(TOTAL_NUMBER_HEADER, comments.getNumComments());
   }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     // Create and add the new comment
-    Comment comment = Comment.fromHttpRequest(request);
-    comments.add(comment);
-
-    Collections.sort(comments);
+    comments.addComment(request);
     
     // Redirect back to the home page.
     response.sendRedirect("/index.html");
-  }
-
-  /** Deletes the given comment from the comments list and data storage */
-  private static void deleteComment(int id) {
-    for(int i = 0; i < comments.size(); i++) {
-      Comment comment = comments.get(i);
-      if(comment.getId() == id) {
-        // Remove the comment from persistent storage and the comments list
-        comment.removePersistent();
-        comments.remove(i);
-        break;
-      }
-    }
   }
 
   @Override
@@ -129,7 +79,7 @@ public class DataServlet extends HttpServlet {
     for(int i = 0; i < toDelete.length; i++) {
         try {
           int id = Integer.parseInt(toDelete[i]);
-          deleteComment(id);
+          comments.deleteComment(id);
         } catch(NumberFormatException e) {
           // Ignore, as should never happen
         }
