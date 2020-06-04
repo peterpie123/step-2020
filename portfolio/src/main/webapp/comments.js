@@ -201,7 +201,7 @@ function refreshComments(from = getPaginationStartIndex()) {
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
 
   // Reset to first page if the currently selected page is out of bounds
-  if(getNumberCommentPages() < currCommentPage) {
+  if (getNumberCommentPages() < currCommentPage) {
     currCommentPage = 1;
     from = 0;
   }
@@ -257,7 +257,12 @@ function deleteComments() {
 
     fetch(`${COMMENTS_URL}${deleteString}`, {
       method: 'DELETE',
-    }).then(r => refreshComments());
+    }).then(r => {
+      refreshComments();
+      // Clear the deletion list and remove styling from the trash can
+      setId(DELETE_ACTIVE, DELETE_INACTIVE);
+      commentsToDelete = new Set();
+    });
   }
 }
 
