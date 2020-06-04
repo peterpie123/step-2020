@@ -149,19 +149,30 @@ function commentSort(sortDirection) {
   }
 }
 
+/** Calculates the start index for comment pagination based on comments per page
+ *  and the current page. */
+function getPaginationStartIndex() {
+  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  return (currCommentPage - 1) * numEachPage;
+}
+
+/** Returns the total number of pages of comments that should be listed */
+function getNumberCommentPages() {
+  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  return Math.ceil(totalNumComments / numEachPage);
+}
+
 /** Navigates the comments list to the given page number */
 function paginate(num) {
   currCommentPage = num;
-  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
-
-  refreshComments((num - 1) * numEachPage);
+  refreshComments(getPaginationStartIndex());
 }
 
 /** Adds the pagination section */
 function addPagination() {
   // Number of comments on each page
   let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
-  let numPages = Math.ceil(totalNumComments / numEachPage);
+  let numPages = getNumberCommentPages();
 
   // Only add pagination if we need to
   if (numPages > 1) {
@@ -171,23 +182,29 @@ function addPagination() {
     for (let i = 1; i <= numPages; i++) {
       // If this is the current comments page, add special styling
       let buttonId = undefined;
-      if(i == currCommentPage) {
+      if (i === currCommentPage) {
         buttonId = PAGINATION_SELECTED;
       }
 
       appendElement(PAGINATION_CONTAINER, 'span', `<input type="button" value="${i}"/>`,
-        buttonId, /* onclick */ () => paginate(i), PAGINATION_SELECT);
-      
+        buttonId, /* onclick */() => paginate(i), PAGINATION_SELECT);
+
     }
   }
 }
 
 /** Retrieves comments from the server and places them on the DOM, clearing existing comments 
- *  By default, starts reading from the first comment (no pagination) */
-function refreshComments(from = 0) {
+ *  By default, starts reading from the appropriate comment page */
+function refreshComments(from = getPaginationStartIndex()) {
   deleteChildren(COMMENTS_CONTAINER);
   pageComments = [];
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
+
+  // Reset to first page if the currently selected page is out of bounds
+  if(getNumberCommentPages() < currCommentPage) {
+    currCommentPage = 1;
+    from = 0;
+  }
 
   // Construct a query string with the appropriate number of comments being retrieved
   fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` +
@@ -209,9 +226,9 @@ function prepareDelete(id) {
     // Remove from deletion
     commentsToDelete.delete(id);
     removeClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
-    
+
     // Remove color of trash can if none are to be deleted
-    if(commentsToDelete.size == 0) {
+    if (commentsToDelete.size == 0) {
       removeClass(DELETE_ICON, DELETE_ACTIVE);
     }
   } else {
@@ -220,7 +237,7 @@ function prepareDelete(id) {
     addClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
     // Add color fo trash can if this is the first to be added
-    if(commentsToDelete.size === 0) {
+    if (commentsToDelete.size === 0) {
       addClass(DELETE_ICON, DELETE_ACTIVE);
     }
   }
