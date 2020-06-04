@@ -163,7 +163,7 @@ textarea {
   transition: .3s;
 }
 
-#icon-selected {
+.icon-selected {
   color: #468887;
 }
 
@@ -269,7 +269,42 @@ textarea {
   animation-iteration-count: 1;
 }
 
+.pop-animated {
+  animation: popOut .75s ease-in-out;
+  animation-iteration-count: 1;
+  background-color: #468887;
+}
+
+.transform-up-animated {
+  animation: transformUp .3s ease-in-out;
+}
+
+.transform-down-animated {
+  animation: transformDown .3s ease-in-out;
+}
+
 @keyframes rotate {
   0% {transform: rotate(0deg);}
   100% {transform: rotate(180deg);}
+}
+
+@keyframes popOut {
+  0% {transform: scale3d(.5, .5, .5);}
+  20% {transform: scale3d(1.1, 1.1, 1.1);}
+  40% {transform: scale3d(.8, .8, .8);}
+  60% {transform: scale3d(1.05, 1.05, 1.05);}
+  80% {transform: scale3d(.95, .95, .95);}
+  100% {transform: scale3d(1, 1, 1);}
+}
+
+@keyframes transformUp {
+  0% {transform: translateY(0px);}
+  50% {transform: translateY(-20px);}
+  100% {transform: translateY(0px);}
+}
+
+@keyframes transformDown {
+  0% {transform: translateY(0px);}
+  50% {transform: translateY(20px);}
+  100% {transform: translateY(0px);}
 }

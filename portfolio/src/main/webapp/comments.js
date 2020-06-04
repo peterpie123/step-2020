@@ -23,12 +23,12 @@ const COMMENTS_URL = '/data';
 const COMMENTS_SORT_NEWEST = 1;
 /** Indicates that comments should be sorted with the oldest on top */
 const COMMENTS_SORT_OLDEST = -1;
-/** ID of the icon that indicates which direction to sort */
+/** Class of the icon that indicates which direction to sort */
 const COMMENTS_SORT_ICON = 'icon-selected';
 /** Icon corresponding to having the newest comment on top */
-const COMMENTS_ICON_NEWEST = 'fa-chevron-circle-up';
+const COMMENTS_ICON_NEWEST = 'comment-newest';
 /** Icon corresponding to having the oldest comment on top */
-const COMMENTS_ICON_OLDEST = 'fa-chevron-circle-down';
+const COMMENTS_ICON_OLDEST = 'comment-oldest';
 /** Query string for indicating how many comments to retrieve */
 const NUM_COMMENTS_QUERY = 'num-comments';
 /** Property for what the user typed/selected in an input field */
@@ -69,7 +69,7 @@ const COMMENT_FILTER_INPUT = 'comment-filter';
 const ENTER_CODE = 13;
 /** Query string for filtering comments */
 const FILTER_QUERY = 'filter';
-/** Class applied to an element to be animated */
+/** Class applied to an element to have it rotate */
 const ROTATE_CLASS = 'rotate-animated';
 /** The rotation animation takes 1 second */
 const ROTATE_TIME = 1000;
@@ -81,6 +81,18 @@ const CREATE_COMMENT_BUTTON = 'comment-submit';
 const COMMENT_NAME_FIELD = 'comment-name';
 /** Field containing the text of the comment to be POSTed */
 const COMMENT_TEXT_FIELD = 'comment-text-input';
+/** Class applied to an element to have it pop out */
+const POP_CLASS = 'pop-animated';
+/** The pop animation takes .75 seconds */
+const POP_TIME = 750;
+/** Class applied to an element to have it jitter upwards temporarily */
+const TRANSFORM_UP_CLASS = 'transform-up-animated';
+/** The transform animation takes .75 seconds */
+const TRANSFORM_UP_TIME = 300;
+/** Class applied to an element to have it jitter downwards temporarily */
+const TRANSFORM_DOWN_CLASS = 'transform-down-animated';
+/** The transform animation takes .75 seconds */
+const TRANSFORM_DOWN_TIME = 300;
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -125,15 +137,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(COMMENT_NAME_FIELD).value = '';
         document.getElementById(COMMENT_TEXT_FIELD).value = '';
         document.getElementById(COMMENT_NAME_FIELD).focus();
+
+        animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
       });
     });
   }
 });
 
-/** Spins the refresh button once */
-function spinRefresh() {
-  addClass(REFRESH_BUTTON, ROTATE_CLASS);
-  setTimeout(() => removeClass(REFRESH_BUTTON, ROTATE_CLASS), ROTATE_TIME);
+/** Adds the animationClass to the given element for a given number of milliseconds */
+function animateElement(id, animationClass, animationTime) {
+  addClass(id, animationClass);
+  setTimeout(() => removeClass(id, animationClass), animationTime);
 }
 
 /** Reads fields from comments-create and POSTs it to server. 
@@ -198,16 +212,22 @@ function reverseComments() {
 function commentSort(sortDirection) {
   // Only change if the sorting direction has changed
   if (sortDirection !== commentsSort) {
-    // Remove the ID (removes coloring) from the current sort
-    document.getElementById(COMMENTS_SORT_ICON).id = '';
     commentsSort = sortDirection;
 
     if (sortDirection === COMMENTS_SORT_NEWEST) {
-      // Add the ID (color) to the icon corresponding to newest
-      document.getElementsByClassName(COMMENTS_ICON_NEWEST)[0].id = COMMENTS_SORT_ICON;
+      // Remove the coloring from the other icon
+      removeClass(COMMENTS_ICON_OLDEST, COMMENTS_SORT_ICON);
+
+      // Add the color to the icon corresponding to newest and animate
+      addClass(COMMENTS_ICON_NEWEST, COMMENTS_SORT_ICON);
+      animateElement(COMMENTS_ICON_NEWEST, TRANSFORM_UP_CLASS, TRANSFORM_UP_TIME);
     } else if (sortDirection === COMMENTS_SORT_OLDEST) {
-      // Add the ID (color) to the icon corresponding to oldest
-      document.getElementsByClassName(COMMENTS_ICON_OLDEST)[0].id = COMMENTS_SORT_ICON;
+      // Remove the coloring from the other icon
+      removeClass(COMMENTS_ICON_NEWEST, COMMENTS_SORT_ICON);
+      
+      // Add the color to the icon corresponding to oldest and animate
+      addClass(COMMENTS_ICON_OLDEST, COMMENTS_SORT_ICON);
+      animateElement(COMMENTS_ICON_OLDEST, TRANSFORM_DOWN_CLASS, TRANSFORM_DOWN_TIME);
     }
 
     // Finally, re-update the comments section
@@ -276,7 +296,7 @@ function refreshComments(from = getPaginationStartIndex(), filter = getCommentFi
   // Query string built from filter. Blank if no filter
   let filterQuery;
 
-  spinRefresh();
+  animateElement(REFRESH_BUTTON, ROTATE_CLASS, ROTATE_TIME);
 
   // Reset to first page if the currently selected page is out of bounds
   if (getNumberCommentPages() < currCommentPage) {
