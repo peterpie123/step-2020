@@ -118,9 +118,6 @@ public class DataServlet extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     // Create and add the new comment
     commentStore.addComment(request);
-    
-    // Redirect back to the home page.
-    response.sendRedirect("/index.html");
   }
 
   @Override

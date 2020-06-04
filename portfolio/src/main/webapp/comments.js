@@ -75,6 +75,12 @@ const ROTATE_CLASS = 'rotate-animated';
 const ROTATE_TIME = 1000;
 /** ID of the comment refresh button */
 const REFRESH_BUTTON = 'comment-refresh-button';
+/** ID of the button clicked when a user wants to submit a comment */
+const CREATE_COMMENT_BUTTON = 'comment-submit';
+/** Field containing the name of the person who authored the comment */
+const COMMENT_NAME_FIELD = 'comment-name';
+/** Field containing the text of the comment to be POSTed */
+const COMMENT_TEXT_FIELD = 'comment-text-input';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -105,15 +111,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if(documentHasElement(REFRESH_BUTTON)) {
+  if (documentHasElement(REFRESH_BUTTON)) {
     document.getElementById(REFRESH_BUTTON).addEventListener('click', e => {
       refreshComments();
-      addClass(REFRESH_BUTTON, ROTATE_CLASS);
+    });
+  }
 
-      setTimeout(() => removeClass(REFRESH_BUTTON, ROTATE_CLASS), ROTATE_TIME);
+  if (documentHasElement(CREATE_COMMENT_BUTTON)) {
+    document.getElementById(CREATE_COMMENT_BUTTON).addEventListener('click', e => {
+      submitComment().then(() => {
+        refreshComments();
+        // Clear field values and refocus on the name field
+        document.getElementById(COMMENT_NAME_FIELD).value = '';
+        document.getElementById(COMMENT_TEXT_FIELD).value = '';
+        document.getElementById(COMMENT_NAME_FIELD).focus();
+      });
     });
   }
 });
+
+/** Spins the refresh button once */
+function spinRefresh() {
+  addClass(REFRESH_BUTTON, ROTATE_CLASS);
+  setTimeout(() => removeClass(REFRESH_BUTTON, ROTATE_CLASS), ROTATE_TIME);
+}
+
+/** Reads fields from comments-create and POSTs it to server. 
+ *  Returns a promise attached to the POST request. */
+function submitComment() {
+  let name = retrieveProperty(COMMENT_NAME_FIELD, TEXT_SELECTION);
+  let text = retrieveProperty(COMMENT_TEXT_FIELD, TEXT_SELECTION);
+
+  let queryString = `?name=${name}&comment=${text}`;
+
+  return fetch(`${COMMENTS_URL}${queryString}`, {
+    method: "POST"
+  });
+}
 
 /** Adds the given comment to the page with the given ID. */
 function addSingleComment(comment) {
@@ -228,7 +262,7 @@ function addPagination() {
 /** Returns the filter contained in the filter text-box. Returns undefined if blank */
 function getCommentFilter() {
   let property = retrieveProperty(COMMENT_FILTER_INPUT, TEXT_SELECTION);
-  if(property.length === 0) {
+  if (property.length === 0) {
     return undefined;
   }
   return property;
@@ -241,6 +275,8 @@ function refreshComments(from = getPaginationStartIndex(), filter = getCommentFi
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
   // Query string built from filter. Blank if no filter
   let filterQuery;
+
+  spinRefresh();
 
   // Reset to first page if the currently selected page is out of bounds
   if (getNumberCommentPages() < currCommentPage) {
