@@ -17,6 +17,7 @@ package com.google.sps.data;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import com.google.gson.Gson;
 import com.google.common.collect.Lists;
@@ -76,9 +77,22 @@ public class CommentPersistHelper {
     }
   }
 
-  /** Stringifies the comments in the desired order, including pagination */
-  public String stringifyComments(int numberComments, SortMethod sort, int paginationFrom) {
+  /** Returns only comments with either name or content containing filter */
+  private List<Comment> filterList(String filter) {
+    if(filter == null) {
+      // Don't filter
+      return comments;
+    }
+
+    // Return comments that contain the filter string
+    return comments.stream().filter(c -> c.contains(filter)).collect(Collectors.toList());
+  }
+
+  /** Stringifies the comments in the desired order, including pagination and filtering */
+  public String stringifyComments(int numberComments, SortMethod sort, 
+                                  int paginationFrom, String filter) {
     Gson gson = new Gson();
+    List<Comment> filteredList = filterList(filter);
     List<Comment> send;
     // List that will either be reversed or not, depending on the sort
     List<Comment> readList = null;
@@ -86,22 +100,22 @@ public class CommentPersistHelper {
     if(paginationFrom < 0) {
       paginationFrom = 0;
     }
-    if(paginationFrom > comments.size()) {
+    if(paginationFrom > filteredList.size()) {
       throw new IllegalArgumentException("Error: Cannot paginate starting at " + paginationFrom +
-                " when there are only " + comments.size() + " comments!");
+                " when there are only " + filteredList.size() + " comments!");
     }
 
     if(sort == SortMethod.ASCENDING) {
-      readList = comments;
+      readList = filteredList;
     } else if(sort == SortMethod.DESCENDING) {
       // Comments is already sorted, so just reverse
-      readList = Lists.reverse(comments);
+      readList = Lists.reverse(filteredList);
     }
 
     int paginationTo = numberComments + paginationFrom;
     // Make sure pagination doesn't go out of bounds
-    if(paginationTo > comments.size()) {
-      paginationTo = comments.size();
+    if(paginationTo > filteredList.size()) {
+      paginationTo = filteredList.size();
     }
     send = readList.subList(paginationFrom, paginationTo);
 
@@ -111,5 +125,10 @@ public class CommentPersistHelper {
   /** Returns the total number of comments that are stored */
   public int getNumberComments() {
     return comments.size();
+  }
+
+  /** Returns the total number of comments that correspond to the given filter */
+  public int getNumberComments(String filter) {
+    return filterList(filter).size();
   }
 }

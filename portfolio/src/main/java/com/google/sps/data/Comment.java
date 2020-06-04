@@ -63,6 +63,11 @@ public class Comment implements Comparable<Comment> {
     return new Comment(text, name, entity.getKey(), time);
   }
 
+  /** Returns true if text or name (inclusive) contains the filter string */
+  public boolean contains(String filter) {
+    return text.contains(filter) || name.contains(filter);
+  }
+
   public String getText() {
     return text;
   }

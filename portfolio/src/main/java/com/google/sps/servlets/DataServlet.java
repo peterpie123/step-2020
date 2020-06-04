@@ -57,6 +57,7 @@ public class DataServlet extends HttpServlet {
     // The number of comments to send
     int commentsToSend;
     CommentPersistHelper.SortMethod sort;
+    String filter;
 
     try {
       commentsToSend = Integer.parseInt(request.getParameter(NUMBER_COMMENTS_QUERY));
@@ -98,10 +99,17 @@ public class DataServlet extends HttpServlet {
                 " is an invalid pagination start. Aborting GET...");
     }
 
+    try {
+      filter = request.getParameter(FILTER_QUERY);
+    } catch(NullPointerException e) {
+      // Leave filter as null to signify none
+      filter = null;
+    }
+
     response.setContentType("application/json;");
-    response.getWriter().println(commentStore.stringifyComments(commentsToSend, sort, paginationFrom));
+    response.getWriter().println(commentStore.stringifyComments(commentsToSend, sort, paginationFrom, filter));
     // Send the total number of comments
-    response.addIntHeader(TOTAL_NUMBER_HEADER, commentStore.getNumberComments());
+    response.addIntHeader(TOTAL_NUMBER_HEADER, commentStore.getNumberComments(filter));
   }
 
   @Override

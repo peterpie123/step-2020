@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.keyCode === ENTER_CODE) {
         // When the user presses enter, reset all pagination and filter
         currCommentPage = 1;
-        refreshComments(0, retrieveProperty(COMMENT_FILTER_INPUT, TEXT_SELECTION));
+        refreshComments(0, getCommentFilter());
       }
     });
   }
@@ -209,9 +209,19 @@ function addPagination() {
   }
 }
 
+/** Returns the filter contained in the filter text-box. Returns undefined if blank */
+function getCommentFilter() {
+  let property = retrieveProperty(COMMENT_FILTER_INPUT, TEXT_SELECTION);
+  if(property.length === 0) {
+    return undefined;
+  }
+  return property;
+}
+
 /** Retrieves comments from the server and places them on the DOM, clearing existing comments 
- *  By default, starts reading from the appropriate comment page and does not filter */
-function refreshComments(from = getPaginationStartIndex(), filter = undefined) {
+ *  By default, starts reading from the appropriate comment page and filters based on 
+ *  the contents of the search box. */
+function refreshComments(from = getPaginationStartIndex(), filter = getCommentFilter()) {
   deleteChildren(COMMENTS_CONTAINER);
   pageComments = [];
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
