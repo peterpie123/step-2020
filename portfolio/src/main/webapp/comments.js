@@ -238,8 +238,6 @@ function getCommentFilter() {
  *  By default, starts reading from the appropriate comment page and filters based on 
  *  the contents of the search box. */
 function refreshComments(from = getPaginationStartIndex(), filter = getCommentFilter()) {
-  deleteChildren(COMMENTS_CONTAINER);
-  pageComments = [];
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
   // Query string built from filter. Blank if no filter
   let filterQuery;
@@ -268,6 +266,8 @@ function refreshComments(from = getPaginationStartIndex(), filter = getCommentFi
       totalNumComments = r.headers.get(TOTAL_NUMBER_HEADER);
       return r.json();
     }).then(comments => {
+      deleteChildren(COMMENTS_CONTAINER);
+      pageComments = [];
       addComments(comments);
       addPagination();
     });
