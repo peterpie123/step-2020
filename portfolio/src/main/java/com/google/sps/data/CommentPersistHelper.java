@@ -56,12 +56,11 @@ public class CommentPersistHelper {
     entity.setProperty(Comment.COMMENT_TEXT, request.getParameter(Comment.COMMENT_TEXT));
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
-
-    comments.add(Comment.fromEntity(entity));
-    Collections.sort(comments);
-
     // Store the comment so it persists
     datastore.put(entity);
+
+    // Insert new comment at the beginning to preserve sort
+    comments.add(0, Comment.fromEntity(entity));
   }
 
   /** Deletes the given comment permanently. */

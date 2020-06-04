@@ -37,12 +37,12 @@ public class DataServlet extends HttpServlet {
   /** Parameter which contains the ID's of the comments to delete */
   private static final String DELETE_PARAMETER = "delete";
 
-  private static CommentPersistHelper comments;
+  private static CommentPersistHelper commentStore;
 
   @Override
   public void init() {
-    comments = new CommentPersistHelper();
-    comments.loadComments();
+    commentStore = new CommentPersistHelper();
+    commentStore.loadComments();
   }
 
   @Override
@@ -65,15 +65,15 @@ public class DataServlet extends HttpServlet {
     }
 
     response.setContentType("application/json;");
-    response.getWriter().println(comments.stringifyComments(numberComments, sort));
+    response.getWriter().println(commentStore.stringifyComments(numberComments, sort));
     // Send the total number of comments
-    response.addIntHeader(TOTAL_NUMBER_HEADER, comments.getNumberComments());
+    response.addIntHeader(TOTAL_NUMBER_HEADER, commentStore.getNumberComments());
   }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     // Create and add the new comment
-    comments.addComment(request);
+    commentStore.addComment(request);
     
     // Redirect back to the home page.
     response.sendRedirect("/index.html");
@@ -85,7 +85,7 @@ public class DataServlet extends HttpServlet {
     Arrays.stream(toDelete).forEach(idStr -> {
       try {
         long id = Long.parseLong(idStr);
-        comments.deleteComment(id);
+        commentStore.deleteComment(id);
       } catch(NumberFormatException e) {
         throw new IllegalArgumentException(
           idStr + " is not a valid comment ID. Aborting comment deletion...");
