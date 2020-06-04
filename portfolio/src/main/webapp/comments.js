@@ -63,6 +63,12 @@ const PAGINATION_SELECT = 'pagination-select';
 const DELETE_INACTIVE = 'trash-inactive';
 /** ID of the delete icon when active (Comments to delete) */
 const DELETE_ACTIVE = 'trash-active';
+/** ID of the textbox where filter text goes */
+const COMMENT_FILTER_INPUT = 'comment-filter';
+/** Code corresponding to the enter key in a key event */
+const ENTER_CODE = 13;
+/** Query string for filtering comments */
+const FILTER_QUERY = 'filter';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -80,6 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (documentHasElement(COMMENTS_CONTAINER)) {
     // Retrieve comments data from the servlet and add to DOM
     refreshComments();
+  }
+  if (documentHasElement(COMMENT_FILTER_INPUT)) {
+    // Filter comments when the user presses enter
+    document.getElementById(COMMENT_FILTER_INPUT).addEventListener('keyup', e => {
+      if (e.key === ENTER_CODE) {
+        // When the user presses enter, reset all pagination and filter
+        currCommentPage = 1;
+        refreshComments(0, retrieveProperty(COMMENT_FILTER_INPUT, TEXT_SELECTION));
+      }
+    });
   }
 });
 
@@ -194,11 +210,13 @@ function addPagination() {
 }
 
 /** Retrieves comments from the server and places them on the DOM, clearing existing comments 
- *  By default, starts reading from the appropriate comment page */
-function refreshComments(from = getPaginationStartIndex()) {
+ *  By default, starts reading from the appropriate comment page and does not filter */
+function refreshComments(from = getPaginationStartIndex(), filter = undefined) {
   deleteChildren(COMMENTS_CONTAINER);
   pageComments = [];
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
+  // Query string built from filter. Blank if no filter
+  let filterQuery;
 
   // Reset to first page if the currently selected page is out of bounds
   if (getNumberCommentPages() < currCommentPage) {
@@ -206,18 +224,27 @@ function refreshComments(from = getPaginationStartIndex()) {
     from = 0;
   }
 
-  // Construct a query string with the appropriate number of comments being retrieved
-  fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` +
+  if (filterQuery !== undefined) {
+    filterQuery = '&' + FILTER_QUERY + '=' + encodeURI(filter);
+  } else {
+    filterQuery = '';
+  }
+
+  // Contains all the query strings for the GET request
+  let queryString = `?${NUM_COMMENTS_QUERY}=` +
     `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}&` +
-    `${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}`).then(
+    `${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}${filterQuery}`
+
+  // Construct a query string with the appropriate number of comments being retrieved
+  fetch(`${COMMENTS_URL}${queryString}`).then(
     /* Convert from response stream */r => {
-        // Get the total number of stored comments
-        totalNumComments = r.headers.get(TOTAL_NUMBER_HEADER);
-        return r.json();
-      }).then(comments => {
-        addComments(comments);
-        addPagination();
-      });
+      // Get the total number of stored comments
+      totalNumComments = r.headers.get(TOTAL_NUMBER_HEADER);
+      return r.json();
+    }).then(comments => {
+      addComments(comments);
+      addPagination();
+    });
 }
 
 /** Prepares the given comment ID for deletion */

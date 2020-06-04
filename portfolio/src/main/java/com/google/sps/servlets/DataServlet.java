@@ -38,6 +38,8 @@ public class DataServlet extends HttpServlet {
   private static final String DELETE_PARAMETER = "delete";
   /** Query string that tells which comment to start at */
   private static final String PAGINATION_START = "pagination";
+  /** Query string that holds a filter */
+  private static final String FILTER_QUERY = "filter";
   /** Default sorting method for retrieving comments */
   private static final CommentPersistHelper.SortMethod defaultSort = CommentPersistHelper.SortMethod.ASCENDING;
 

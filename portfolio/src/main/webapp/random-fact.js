@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(USER_FAVORITE_INPUT_ID).addEventListener('keyup', e => {
       checkAgree();
 
-      if (e.key == ENTER_CODE) {
+      if (e.keyCode == ENTER_CODE) {
         processNewFavorite();
       }
     });

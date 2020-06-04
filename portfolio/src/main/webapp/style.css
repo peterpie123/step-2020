@@ -246,3 +246,8 @@ textarea {
   cursor: pointer;
   color: #b3b3b8;
 }
+
+#comment-filter {
+  padding: 5px;
+  margin: 4px;
+}
