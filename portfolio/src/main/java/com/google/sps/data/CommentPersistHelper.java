@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import com.google.gson.Gson;
+import com.google.common.collect.Lists;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -30,13 +31,14 @@ import com.google.appengine.api.datastore.Key;
 
 /** Keeps track of persisted comments with ability to add/remove comments */
 public class CommentPersistHelper {
+  public enum SortMethod { ASCENDING, DESCENDING }
+
   private final DatastoreService datastore;
   private final List<Comment> comments;
 
   public CommentPersistHelper() {
     datastore = DatastoreServiceFactory.getDatastoreService();
     comments = new ArrayList<>();
-    loadComments();
   }
 
   /** Loads comments from persist storage and adds to the comments list */
@@ -54,16 +56,15 @@ public class CommentPersistHelper {
     entity.setProperty(Comment.COMMENT_TEXT, request.getParameter(Comment.COMMENT_TEXT));
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
-
-    comments.add(Comment.fromEntity(entity));
-    Collections.sort(comments);
-
     // Store the comment so it persists
     datastore.put(entity);
+
+    // Insert new comment at the beginning to preserve sort
+    comments.add(0, Comment.fromEntity(entity));
   }
 
   /** Deletes the given comment permanently. */
-  public void deleteComment(int id) {
+  public void deleteComment(long id) {
     for(int i = 0; i < comments.size(); i++) {
       Comment comment = comments.get(i);
       if(comment.getId() == id) {
@@ -76,36 +77,34 @@ public class CommentPersistHelper {
   }
 
   /** Stringifies the comments in the desired order, including pagination */
-  public String stringifyComments(int numComments, boolean sortAscending, int from) {
+  public String stringifyComments(int numberComments, SortMethod sort, int paginationFrom) {
     Gson gson = new Gson();
-    List<Comment> send = new ArrayList<>(numComments);
+    List<Comment> send;
+    // List that will either be reversed or not, depending on the sort
+    List<Comment> readList = null;
 
-    if(from < 0) {
-      from = 0;
+    if(paginationFrom < 0) {
+      paginationFrom = 0;
     }
 
-    if(sortAscending) {
-      // Send the first numComments entries
-      for(int i = from; i < numComments + from && i < comments.size(); i++) {
-        send.add(comments.get(i));
-      }
+    if(sort == SortMethod.ASCENDING) {
+      readList = comments;
+    } else if(sort == SortMethod.DESCENDING) {
+      // Comments is already sorted, so just reverse
+      readList = Lists.reverse(comments);
+    }
+    
+    if(numberComments < comments.size()) {
+      // Will be the 'first' or 'last' elements of all comments, depending on sort
+      send = readList.subList(paginationFrom, numberComments + paginationFrom);
     } else {
-      // Send the last numComments entries 
-      if(numComments > comments.size()) {
-        for(int i = comments.size() - 1 - from; i >= 0; i--) {
-          send.add(comments.get(i));
-        }
-      } else {
-        for(int i = comments.size() - 1 - from; i >= comments.size() - numComments - from; i--) {
-            send.add(comments.get(i));
-        }
-      }
+      send = readList.subList(paginationFrom, numberComments);
     }
 
     return gson.toJson(send);
   }
 
-  public int getNumComments() {
+  public int getNumberComments() {
     return comments.size();
   }
 }

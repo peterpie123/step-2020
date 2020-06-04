@@ -36,9 +36,9 @@ public class Comment implements Comparable<Comment> {
   private final String name;
   /** Time comment was created, in milliseconds since epoch (UTC) */
   private final long timestamp;
-  /** Temporary ID used on the front-end */
-  private final int id;
-  /** The key associated with the entity that keeps this comment persist in storage. */
+  /** The ID of the key associated with the entity that keeps this comment in persistent storage. */
+  private final long id;
+  /** The key that keeps this comment in persistent storage */
   private final Key key;
 
   /** Create a comment with a posted date of given milliseconds from the epoch. */
@@ -47,9 +47,7 @@ public class Comment implements Comparable<Comment> {
     this.name = name;
     this.timestamp = timestamp;
     this.key = key;
-
-    // Dynamically assign ID
-    id = commentCount++;
+    this.id = key.getId();
   }
 
   /** Create a comment with the current time as creation date */
@@ -78,7 +76,7 @@ public class Comment implements Comparable<Comment> {
     return timestamp;
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
 
