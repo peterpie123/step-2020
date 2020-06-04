@@ -69,6 +69,12 @@ const COMMENT_FILTER_INPUT = 'comment-filter';
 const ENTER_CODE = 13;
 /** Query string for filtering comments */
 const FILTER_QUERY = 'filter';
+/** Class applied to an element to be animated */
+const ROTATE_CLASS = 'rotate-animated';
+/** The rotation animation takes 1 second */
+const ROTATE_TIME = 1000;
+/** ID of the comment refresh button */
+const REFRESH_BUTTON = 'comment-refresh-button';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -87,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Retrieve comments data from the servlet and add to DOM
     refreshComments();
   }
+
   if (documentHasElement(COMMENT_FILTER_INPUT)) {
     // Filter comments when the user presses enter
     document.getElementById(COMMENT_FILTER_INPUT).addEventListener('keyup', e => {
@@ -95,6 +102,15 @@ document.addEventListener('DOMContentLoaded', () => {
         currCommentPage = 1;
         refreshComments(0, getCommentFilter());
       }
+    });
+  }
+
+  if(documentHasElement(REFRESH_BUTTON)) {
+    document.getElementById(REFRESH_BUTTON).addEventListener('click', e => {
+      refreshComments();
+      addClass(REFRESH_BUTTON, ROTATE_CLASS);
+
+      setTimeout(() => removeClass(REFRESH_BUTTON, ROTATE_CLASS), ROTATE_TIME);
     });
   }
 });

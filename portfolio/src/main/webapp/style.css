@@ -147,11 +147,14 @@ textarea {
   margin-top: 0;
 }
 
-#comment-header i {
+#comment-header button {
   float: right;
+  background: none;
+  border: none;
+  padding: 0;
 }
 
-#comment-header i:hover {
+#comment-header button:hover {
   color: #b3b3b8;
   cursor: pointer;
 }
@@ -162,7 +165,7 @@ textarea {
 
 #num-comments {
   vertical-align: top;
-  float: right;
+  float: left;
   margin: 4px;
   width: 40px;
   padding: 5px;
@@ -250,4 +253,14 @@ textarea {
 #comment-filter {
   padding: 5px;
   margin: 4px;
+}
+
+.rotate-animated {
+  animation: rotate 1s ease;
+  animation-iteration-count: 1;
+}
+
+@keyframes rotate {
+  0% {transform: rotate(0deg);}
+  100% {transform: rotate(180deg);}
 }
