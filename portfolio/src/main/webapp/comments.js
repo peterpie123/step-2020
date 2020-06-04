@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Import utlity functions, unfortunately cannot be line-wrapped
-import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass, setId } from './script.js';
+import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass, setId, timePassed } from './script.js';
 
 /** ID of the comments container */
 const COMMENTS_CONTAINER = 'comments-container';
@@ -97,7 +97,7 @@ function addSingleComment(comment) {
   let contentId = containerId + '-content';
   appendElement(containerId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
   // Add the name, time, and content
-  appendElement(contentId, 'p', `<b>${comment.name}</b>\t${date.toLocaleTimeString()}`);
+  appendElement(contentId, 'p', `<b>${comment.name}</b>\t${timePassed(date)}`);
   appendElement(contentId, 'p', comment.text);
 
   // Add the element that will toggle deleting this comment
