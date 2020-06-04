@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Import utlity functions
-import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass } from './script.js';
+// Import utlity functions, unfortunately cannot be line-wrapped
+import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass, setId } from './script.js';
 
 /** ID of the comments container */
 const COMMENTS_CONTAINER = 'comments-container';
@@ -59,9 +59,9 @@ const PAGINATION_START = 'pagination';
 const PAGINATION_SELECTED = 'pagination-selected';
 /** Class name of the pagination buttons */
 const PAGINATION_SELECT = 'pagination-select';
-/** ID of the delete icon */
-const DELETE_ICON = 'trash-can';
-/** Class present when delete button is active (i.e. comments to delete) */
+/** ID of the delete icon when inactive (No comments to delete) */
+const DELETE_INACTIVE = 'trash-inactive';
+/** ID of the delete icon when active (Comments to delete) */
 const DELETE_ACTIVE = 'trash-active';
 
 /** List of comments currently on the page */
@@ -228,8 +228,8 @@ function prepareDelete(id) {
     removeClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
     // Remove color of trash can if none are to be deleted
-    if (commentsToDelete.size == 0) {
-      removeClass(DELETE_ICON, DELETE_ACTIVE);
+    if (commentsToDelete.size === 0) {
+      setId(DELETE_ACTIVE, DELETE_INACTIVE);
     }
   } else {
     // Add to deletion
@@ -237,8 +237,8 @@ function prepareDelete(id) {
     addClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
     // Add color fo trash can if this is the first to be added
-    if (commentsToDelete.size === 0) {
-      addClass(DELETE_ICON, DELETE_ACTIVE);
+    if (commentsToDelete.size === 1) {
+      setId(DELETE_INACTIVE, DELETE_ACTIVE);
     }
   }
 }

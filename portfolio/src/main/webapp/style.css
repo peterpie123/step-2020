@@ -228,21 +228,21 @@ textarea {
   cursor: pointer;
 }
 
-#trash-can {
+#trash-inactive {
   color: lightgrey;
 }
 
-#trash-can:hover {
-  color: lightgrey;
-  cursor: auto;
+#trash-inactive:hover {
+  color: lightgrey !important;
+  cursor: auto !important;
 }
 
-.trash-active {
+#trash-active {
   color: #d42f26;
   cursor: pointer;
 }
 
-.trash-active:hover {
+#trash-active:hover {
   cursor: pointer;
   color: #b3b3b8;
 }

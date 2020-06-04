@@ -84,3 +84,8 @@ export function addClass(elementId, className) {
 export function removeClass(elementId, className) {
   document.getElementById(elementId).classList.remove(className);
 }
+
+/** Sets the ID of the given element to the new ID */
+export function setId(elementId, newId) {
+  document.getElementById(elementId).id = newId;
+}
