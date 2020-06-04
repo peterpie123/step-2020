@@ -101,6 +101,7 @@ public class CommentPersistHelper {
     return gson.toJson(send);
   }
 
+  /** Returns the total number of comments that are stored */
   public int getNumberComments() {
     return comments.size();
   }
