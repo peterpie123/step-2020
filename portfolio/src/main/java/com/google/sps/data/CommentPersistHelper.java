@@ -86,6 +86,10 @@ public class CommentPersistHelper {
     if(paginationFrom < 0) {
       paginationFrom = 0;
     }
+    if(paginationFrom > comments.size()) {
+      throw new IllegalArgumentException("Error: Cannot paginate starting at " + paginationFrom +
+                " when there are only " + comments.size() + " comments!");
+    }
 
     if(sort == SortMethod.ASCENDING) {
       readList = comments;
@@ -93,13 +97,13 @@ public class CommentPersistHelper {
       // Comments is already sorted, so just reverse
       readList = Lists.reverse(comments);
     }
-    
-    if(numberComments < comments.size()) {
-      // Will be the 'first' or 'last' elements of all comments, depending on sort
-      send = readList.subList(paginationFrom, numberComments + paginationFrom);
-    } else {
-      send = readList.subList(paginationFrom, numberComments);
+
+    int paginationTo = numberComments + paginationFrom;
+    // Make sure pagination doesn't go out of bounds
+    if(paginationTo > comments.size()) {
+      paginationTo = comments.size();
     }
+    send = readList.subList(paginationFrom, paginationTo);
 
     return gson.toJson(send);
   }

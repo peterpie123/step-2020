@@ -51,7 +51,7 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    int paginationFrom = 0;
+    int paginationFrom;
     // The number of comments to send
     int commentsToSend;
     CommentPersistHelper.SortMethod sort;
@@ -67,7 +67,7 @@ public class DataServlet extends HttpServlet {
       commentsToSend = DEFAULT_COMMENT_COUNT;
     } catch(NumberFormatException e) {
       // Number of comments is malformed, so complain about it!
-      throw new IllegalArgumentException(request.getParameter(NUMBER_COMMENTS_QUERY) + 
+      throw new IllegalArgumentException(request.getParameter(NUMBER_COMMENTS_QUERY) +
                 " is an invalid number of comments. Aborting GET...");
     }
     try {
@@ -82,15 +82,18 @@ public class DataServlet extends HttpServlet {
       sort = defaultSort;
     }
     
-    if(request.getParameter(PAGINATION_START) != null) {
-      try {
-        paginationFrom = Integer.parseInt(request.getParameter(PAGINATION_START));
-      } catch(NumberFormatException e) {
-        // Ignore and use default
-      }
+    try {
+      paginationFrom = Integer.parseInt(request.getParameter(PAGINATION_START));
       if(paginationFrom < 0) {
         paginationFrom = 0;
       }
+    } catch(NullPointerException e) {
+      // Pagination isn't included, so just start at 0
+      paginationFrom = 0;
+    } catch(NumberFormatException e) {
+      // Pagination is malformed, so kick up a fuss
+      throw new IllegalArgumentException(request.getParameter(PAGINATION_START) +
+                " is an invalid pagination start. Aborting GET...");
     }
 
     response.setContentType("application/json;");
