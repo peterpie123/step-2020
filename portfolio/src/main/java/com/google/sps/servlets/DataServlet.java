@@ -39,7 +39,7 @@ public class DataServlet extends HttpServlet {
   /** Query string that tells which comment to start at */
   private static final String PAGINATION_START = "pagination";
   /** Default sorting method for retrieving comments */
-  private static final CommentPersistHelper.SortMethod defaultSort = CommentPersistHelper.SortMethod.ASCENDING;
+  private static final CommentPersistHelper.SortMethod DEFAULT_SORT = CommentPersistHelper.SortMethod.ASCENDING;
 
   private static CommentPersistHelper commentStore;
 
@@ -79,7 +79,7 @@ public class DataServlet extends HttpServlet {
       }
     } catch(NullPointerException e) {
       // Sort method is not included, so use default
-      sort = defaultSort;
+      sort = DEFAULT_SORT;
     }
     
     try {
