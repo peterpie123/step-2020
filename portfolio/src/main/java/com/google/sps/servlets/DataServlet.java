@@ -16,6 +16,7 @@ package com.google.sps.servlets;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.lang.IllegalArgumentException;
 import com.google.sps.data.CommentPersistHelper;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -26,9 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
   /** Default number of comments to send */
-  private static final int DEFAULT_COMMENT_NUM = 25;
+  private static final int DEFAULT_COMMENT_COUNT = 25;
   /** Query string which contains the number of comments to send */
-  private static final String NUM_COMMENTS_QUERY = "num-comments";
+  private static final String NUMBER_COMMENTS_QUERY = "num-comments";
   /** Header containing the total number of comments stored */
   private static final String TOTAL_NUMBER_HEADER = "num-comments";
   /** Query string that indicates whether to sort ascending or descending */
@@ -41,18 +42,19 @@ public class DataServlet extends HttpServlet {
   @Override
   public void init() {
     comments = new CommentPersistHelper();
+    comments.loadComments();
   }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    int numComments = DEFAULT_COMMENT_NUM;
+    int numberComments = DEFAULT_COMMENT_COUNT;
     CommentPersistHelper.SortMethod sort = CommentPersistHelper.SortMethod.ASCENDING;
 
-    if(request.getParameter(NUM_COMMENTS_QUERY) != null) {
-      numComments = Integer.parseInt(request.getParameter(NUM_COMMENTS_QUERY));
+    if(request.getParameter(NUMBER_COMMENTS_QUERY) != null) {
+      numberComments = Integer.parseInt(request.getParameter(NUMBER_COMMENTS_QUERY));
       // Revert to default if user specified an invalid number
-      if(numComments <= 0) {
-        numComments = DEFAULT_COMMENT_NUM;
+      if(numberComments <= 0) {
+        numberComments = DEFAULT_COMMENT_COUNT;
       }
     }
     if(request.getParameter(SORT_ASCENDING_QUERY) != null) {
@@ -63,9 +65,9 @@ public class DataServlet extends HttpServlet {
     }
 
     response.setContentType("application/json;");
-    response.getWriter().println(comments.stringifyComments(numComments, sort));
+    response.getWriter().println(comments.stringifyComments(numberComments, sort));
     // Send the total number of comments
-    response.addIntHeader(TOTAL_NUMBER_HEADER, comments.getNumComments());
+    response.addIntHeader(TOTAL_NUMBER_HEADER, comments.getNumberComments());
   }
 
   @Override
@@ -82,10 +84,11 @@ public class DataServlet extends HttpServlet {
     String[] toDelete = request.getParameterValues(DELETE_PARAMETER);
     Arrays.stream(toDelete).forEach(idStr -> {
       try {
-        int id = Integer.parseInt(idStr);
+        long id = Long.parseLong(idStr);
         comments.deleteComment(id);
       } catch(NumberFormatException e) {
-        // Ignore, as should never happen
+        throw new IllegalArgumentException(
+          idStr + " is not a valid comment ID. Aborting comment deletion...");
       }
     });
   }

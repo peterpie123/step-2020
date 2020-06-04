@@ -39,7 +39,6 @@ public class CommentPersistHelper {
   public CommentPersistHelper() {
     datastore = DatastoreServiceFactory.getDatastoreService();
     comments = new ArrayList<>();
-    loadComments();
   }
 
   /** Loads comments from persist storage and adds to the comments list */
@@ -66,7 +65,7 @@ public class CommentPersistHelper {
   }
 
   /** Deletes the given comment permanently. */
-  public void deleteComment(int id) {
+  public void deleteComment(long id) {
     for(int i = 0; i < comments.size(); i++) {
       Comment comment = comments.get(i);
       if(comment.getId() == id) {
@@ -78,9 +77,9 @@ public class CommentPersistHelper {
     }
   }
 
-  /** Returns a JSON string of the comments list, sorted as given and returning numComments
+  /** Returns a JSON string of the comments list, sorted as given and returning numberComments
    *  at a maximum. */
-  public String stringifyComments(int numComments, SortMethod sort) {
+  public String stringifyComments(int numberComments, SortMethod sort) {
     Gson gson = new Gson();
     List<Comment> send;
     // List that will either be reversed or not, depending on the sort
@@ -93,9 +92,9 @@ public class CommentPersistHelper {
       readList = Lists.reverse(comments);
     }
     
-    if(numComments < comments.size()) {
+    if(numberComments < comments.size()) {
       // Will be the 'first' or 'last' elements of all comments, depending on sort
-      send = readList.subList(0, numComments);
+      send = readList.subList(0, numberComments);
     } else {
       send = readList;
     }
@@ -103,7 +102,7 @@ public class CommentPersistHelper {
     return gson.toJson(send);
   }
 
-  public int getNumComments() {
+  public int getNumberComments() {
     return comments.size();
   }
 }

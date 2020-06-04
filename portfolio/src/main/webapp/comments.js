@@ -123,7 +123,7 @@ function commentSort(sortDirection) {
     if (sortDirection === COMMENTS_SORT_NEWEST) {
       // Add the ID (color) to the icon corresponding to newest
       document.getElementsByClassName(COMMENTS_ICON_NEWEST)[0].id = COMMENTS_SORT_ICON;
-      reverseComments()
+      reverseComments();
     } else if (sortDirection === COMMENTS_SORT_OLDEST) {
       // Add the ID (color) to the icon corresponding to oldest
       document.getElementsByClassName(COMMENTS_ICON_OLDEST)[0].id = COMMENTS_SORT_ICON;
