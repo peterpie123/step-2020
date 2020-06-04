@@ -52,18 +52,19 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     int paginationFrom = 0;
-    int numberComments;
+    // The number of comments to send
+    int commentsToSend;
     CommentPersistHelper.SortMethod sort;
 
     try {
-      numberComments = Integer.parseInt(request.getParameter(NUMBER_COMMENTS_QUERY));
+      commentsToSend = Integer.parseInt(request.getParameter(NUMBER_COMMENTS_QUERY));
       // Revert to default if user specified an invalid number
-      if(numberComments <= 0) {
-        numberComments = DEFAULT_COMMENT_COUNT;
+      if(commentsToSend <= 0) {
+        commentsToSend = DEFAULT_COMMENT_COUNT;
       }
     } catch(NullPointerException e) {
       // Number of comments is not included, so use default
-      numberComments = DEFAULT_COMMENT_COUNT;
+      commentsToSend = DEFAULT_COMMENT_COUNT;
     } catch(NumberFormatException e) {
       // Number of comments is malformed, so complain about it!
       throw new IllegalArgumentException(request.getParameter(NUMBER_COMMENTS_QUERY) + 
@@ -93,7 +94,7 @@ public class DataServlet extends HttpServlet {
     }
 
     response.setContentType("application/json;");
-    response.getWriter().println(commentStore.stringifyComments(numberComments, sort, paginationFrom));
+    response.getWriter().println(commentStore.stringifyComments(commentsToSend, sort, paginationFrom));
     // Send the total number of comments
     response.addIntHeader(TOTAL_NUMBER_HEADER, commentStore.getNumberComments());
   }
