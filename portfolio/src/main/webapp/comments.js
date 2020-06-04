@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (documentHasElement(COMMENT_FILTER_INPUT)) {
     // Filter comments when the user presses enter
     document.getElementById(COMMENT_FILTER_INPUT).addEventListener('keyup', e => {
-      if (e.key === ENTER_CODE) {
+      if (e.keyCode === ENTER_CODE) {
         // When the user presses enter, reset all pagination and filter
         currCommentPage = 1;
         refreshComments(0, retrieveProperty(COMMENT_FILTER_INPUT, TEXT_SELECTION));
@@ -224,7 +224,7 @@ function refreshComments(from = getPaginationStartIndex(), filter = undefined) {
     from = 0;
   }
 
-  if (filterQuery !== undefined) {
+  if (filter !== undefined) {
     filterQuery = '&' + FILTER_QUERY + '=' + encodeURI(filter);
   } else {
     filterQuery = '';
