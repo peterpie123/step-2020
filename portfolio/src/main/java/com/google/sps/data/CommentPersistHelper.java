@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import com.google.gson.Gson;
+import com.google.common.collect.Lists;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -30,6 +31,8 @@ import com.google.appengine.api.datastore.Key;
 
 /** Keeps track of persisted comments with ability to add/remove comments */
 public class CommentPersistHelper {
+  public enum SortMethod { ASCENDING, DESCENDING }
+
   private final DatastoreService datastore;
   private final List<Comment> comments;
 
@@ -75,26 +78,26 @@ public class CommentPersistHelper {
     }
   }
 
-  public String stringifyComments(int numComments, boolean sortAscending) {
+  /** Returns a JSON string of the comments list, sorted as given and returning numComments
+   *  at a maximum. */
+  public String stringifyComments(int numComments, SortMethod sort) {
     Gson gson = new Gson();
-    List<Comment> send = new ArrayList<>(numComments);
+    List<Comment> send;
+    // List that will either be reversed or not, depending on the sort
+    List<Comment> readList = null;
 
-    if(sortAscending) {
-      // Send the first numComments entries
-      for(int i = 0; i < numComments && i < comments.size(); i++) {
-        send.add(comments.get(i));
-      }
+    if(sort == SortMethod.ASCENDING) {
+      readList = comments;
+    } else if(sort == SortMethod.DESCENDING) {
+      // Comments is already sorted, so just reverse
+      readList = Lists.reverse(comments);
+    }
+    
+    if(numComments < comments.size()) {
+      // Will be the 'first' or 'last' elements of all comments, depending on sort
+      send = readList.subList(0, numComments);
     } else {
-      // Send the last numComments entries 
-      if(numComments > comments.size()) {
-        for(int i = comments.size() - 1; i >= 0; i--) {
-          send.add(comments.get(i));
-        }
-      } else {
-        for(int i = comments.size() - 1; i >= comments.size() - numComments; i--) {
-            send.add(comments.get(i));
-        }
-      }
+      send = readList;
     }
 
     return gson.toJson(send);

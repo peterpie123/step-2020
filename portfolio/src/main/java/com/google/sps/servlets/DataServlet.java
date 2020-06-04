@@ -46,7 +46,7 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     int numComments = DEFAULT_COMMENT_NUM;
-    boolean sortAscending = true;
+    CommentPersistHelper.SortMethod sort = CommentPersistHelper.SortMethod.ASCENDING;
 
     if(request.getParameter(NUM_COMMENTS_QUERY) != null) {
       numComments = Integer.parseInt(request.getParameter(NUM_COMMENTS_QUERY));
@@ -56,11 +56,14 @@ public class DataServlet extends HttpServlet {
       }
     }
     if(request.getParameter(SORT_ASCENDING_QUERY) != null) {
-      sortAscending = Boolean.parseBoolean(request.getParameter(SORT_ASCENDING_QUERY));
+      boolean sortAscending = Boolean.parseBoolean(request.getParameter(SORT_ASCENDING_QUERY));
+      if(!sortAscending) {
+        sort = CommentPersistHelper.SortMethod.DESCENDING;
+      }
     }
 
     response.setContentType("application/json;");
-    response.getWriter().println(comments.stringifyComments(numComments, sortAscending));
+    response.getWriter().println(comments.stringifyComments(numComments, sort));
     // Send the total number of comments
     response.addIntHeader(TOTAL_NUMBER_HEADER, comments.getNumComments());
   }
