@@ -36,6 +36,8 @@ public class DataServlet extends HttpServlet {
   private static final String SORT_ASCENDING_QUERY = "sort-ascending";
   /** Parameter which contains the ID's of the comments to delete */
   private static final String DELETE_PARAMETER = "delete";
+  /** Default sorting method for retrieving comments */
+  private static final CommentPersistHelper.SortMethod defaultSort = CommentPersistHelper.SortMethod.ASCENDING;
 
   private static CommentPersistHelper commentStore;
 
@@ -47,21 +49,33 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    int numberComments = DEFAULT_COMMENT_COUNT;
-    CommentPersistHelper.SortMethod sort = CommentPersistHelper.SortMethod.ASCENDING;
+    int numberComments;
+    CommentPersistHelper.SortMethod sort;
 
-    if(request.getParameter(NUMBER_COMMENTS_QUERY) != null) {
+    try {
       numberComments = Integer.parseInt(request.getParameter(NUMBER_COMMENTS_QUERY));
       // Revert to default if user specified an invalid number
       if(numberComments <= 0) {
         numberComments = DEFAULT_COMMENT_COUNT;
       }
+    } catch(NullPointerException e) {
+      // Number of comments is not included, so use default
+      numberComments = DEFAULT_COMMENT_COUNT;
+    } catch(NumberFormatException e) {
+      // Number of comments is malformed, so complain about it!
+      throw new IllegalArgumentException(request.getParameter(NUMBER_COMMENTS_QUERY) + 
+                " is an invalid number of comments. Aborting GET...");
     }
-    if(request.getParameter(SORT_ASCENDING_QUERY) != null) {
+    try {
       boolean sortAscending = Boolean.parseBoolean(request.getParameter(SORT_ASCENDING_QUERY));
-      if(!sortAscending) {
+      if(sortAscending) {
+        sort = CommentPersistHelper.SortMethod.ASCENDING;
+      } else {
         sort = CommentPersistHelper.SortMethod.DESCENDING;
       }
+    } catch(NullPointerException e) {
+      // Sort method is not included, so use default
+      sort = defaultSort;
     }
 
     response.setContentType("application/json;");
