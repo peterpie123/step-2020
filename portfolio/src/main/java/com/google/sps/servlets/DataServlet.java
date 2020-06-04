@@ -16,6 +16,8 @@ package com.google.sps.servlets;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 import java.lang.IllegalArgumentException;
 import com.google.sps.data.CommentPersistHelper;
 import javax.servlet.annotation.WebServlet;
@@ -124,14 +126,18 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     String[] toDelete = request.getParameterValues(DELETE_PARAMETER);
+    List<Long> deleteIds = new ArrayList<>(toDelete.length);
+
     Arrays.stream(toDelete).forEach(idStr -> {
       try {
         long id = Long.parseLong(idStr);
-        commentStore.deleteComment(id);
+        deleteIds.add(id);
       } catch(NumberFormatException e) {
         throw new IllegalArgumentException(
           idStr + " is not a valid comment ID. Aborting comment deletion...");
       }
     });
+
+    deleteIds.stream().forEach(id -> commentStore.deleteComment(id));
   }
 }
