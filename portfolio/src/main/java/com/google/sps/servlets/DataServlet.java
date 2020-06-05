@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
   /** Default number of comments to send */
-  private static final int DEFAULT_COMMENT_COUNT = 25;
+  private static final int DEFAULT_COMMENT_COUNT = 5;
   /** Query string which contains the number of comments to send */
   private static final String NUMBER_COMMENTS_QUERY = "num-comments";
   /** Header containing the total number of comments stored */
@@ -62,7 +62,14 @@ public class DataServlet extends HttpServlet {
     String filter;
 
     try {
-      commentsToSend = Integer.parseInt(request.getParameter(NUMBER_COMMENTS_QUERY));
+      String commentsQuery = request.getParameter(NUMBER_COMMENTS_QUERY);
+      // Since Integer.parseInt() throws a NumberFormatException when param is null, 
+      // Manually throw a NullPointerException
+      if(commentsQuery == null) {
+        throw new NullPointerException();
+      }
+
+      commentsToSend = Integer.parseInt(commentsQuery);
       // Revert to default if user specified an invalid number
       if(commentsToSend <= 0) {
         commentsToSend = DEFAULT_COMMENT_COUNT;

@@ -59,9 +59,9 @@ const PAGINATION_START = 'pagination';
 const PAGINATION_SELECTED = 'pagination-selected';
 /** Class name of the pagination buttons */
 const PAGINATION_SELECT = 'pagination-select';
-/** ID of the delete icon when inactive (No comments to delete) */
+/** Class of the delete icon when inactive (No comments to delete) */
 const DELETE_INACTIVE = 'trash-inactive';
-/** ID of the delete icon when active (Comments to delete) */
+/** Class of the delete icon when active (Comments to delete) */
 const DELETE_ACTIVE = 'trash-active';
 /** ID of the textbox where filter text goes */
 const COMMENT_FILTER_INPUT = 'comment-filter';
@@ -93,6 +93,12 @@ const TRANSFORM_UP_TIME = 300;
 const TRANSFORM_DOWN_CLASS = 'transform-down-animated';
 /** The transform animation takes .75 seconds */
 const TRANSFORM_DOWN_TIME = 300;
+/** ID of the comment delete button */
+const DELETE_BUTTON = 'comments-delete';
+/** Class for the shake animation */
+const SHAKE_CLASS = 'shake-animated';
+/** Shake animation takes .5 seconds */
+const SHAKE_TIME = 500;
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -110,6 +116,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (documentHasElement(COMMENTS_CONTAINER)) {
     // Retrieve comments data from the servlet and add to DOM
     refreshComments();
+  }
+
+  if (documentHasElement(NUM_COMMENTS_FIELD)) {
+    // Refresh when the user presses enter
+    document.getElementById(NUM_COMMENTS_FIELD).addEventListener('keyup', e => {
+      if (e.keyCode === ENTER_CODE) {
+        let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+        refreshComments();
+      }
+    });
   }
 
   if (documentHasElement(COMMENT_FILTER_INPUT)) {
@@ -224,7 +240,7 @@ function commentSort(sortDirection) {
     } else if (sortDirection === COMMENTS_SORT_OLDEST) {
       // Remove the coloring from the other icon
       removeClass(COMMENTS_ICON_NEWEST, COMMENTS_SORT_ICON);
-      
+
       // Add the color to the icon corresponding to oldest and animate
       addClass(COMMENTS_ICON_OLDEST, COMMENTS_SORT_ICON);
       animateElement(COMMENTS_ICON_OLDEST, TRANSFORM_DOWN_CLASS, TRANSFORM_DOWN_TIME);
@@ -244,7 +260,7 @@ function getPaginationStartIndex() {
 
 /** Returns the total number of pages of comments that should be listed */
 function getNumberCommentPages() {
-  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  let numEachPage = pageComments.length;
   return Math.ceil(totalNumComments / numEachPage);
 }
 
@@ -257,7 +273,7 @@ function paginate(num) {
 /** Adds the pagination section */
 function addPagination() {
   // Number of comments on each page
-  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  let numEachPage = pageComments.length;
   let numPages = getNumberCommentPages();
 
   // Only add pagination if we need to
@@ -311,9 +327,15 @@ function refreshComments(from = getPaginationStartIndex(), filter = getCommentFi
   }
 
   // Contains all the query strings for the GET request
-  let queryString = `?${NUM_COMMENTS_QUERY}=` +
-    `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}&` +
-    `${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}${filterQuery}`
+  let queryString = `?${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}${filterQuery}`
+
+  let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  if (numComments.length > 0 && numComments > 0) {
+    queryString += '&' + NUM_COMMENTS_QUERY + '=' + numComments;
+  } else {
+    // Shake the element to signify invalid value
+    animateElement(NUM_COMMENTS_FIELD, SHAKE_CLASS, SHAKE_TIME);
+  }
 
   // Construct a query string with the appropriate number of comments being retrieved
   fetch(`${COMMENTS_URL}${queryString}`).then(
@@ -336,18 +358,20 @@ function prepareDelete(id) {
     commentsToDelete.delete(id);
     removeClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
-    // Remove color of trash can if none are to be deleted
+    // Remove color of delete button if none are to be deleted
     if (commentsToDelete.size === 0) {
-      setId(DELETE_ACTIVE, DELETE_INACTIVE);
+      removeClass(DELETE_BUTTON, DELETE_ACTIVE);
+      addClass(DELETE_BUTTON, DELETE_INACTIVE);
     }
   } else {
     // Add to deletion
     commentsToDelete.add(id);
     addClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
-    // Add color fo trash can if this is the first to be added
+    // Add styling to delete button if this is the first to be added
     if (commentsToDelete.size === 1) {
-      setId(DELETE_INACTIVE, DELETE_ACTIVE);
+      removeClass(DELETE_BUTTON, DELETE_INACTIVE);
+      addClass(DELETE_BUTTON, DELETE_ACTIVE)
     }
   }
 }
@@ -356,6 +380,8 @@ function prepareDelete(id) {
 function deleteComments() {
   if (commentsToDelete.size > 0) {
     let deleteString = '?';
+
+    animateElement(DELETE_BUTTON, POP_CLASS, POP_TIME);
 
     Array.from(commentsToDelete).forEach((id, index) => {
       if (index > 0) {
@@ -369,7 +395,8 @@ function deleteComments() {
     }).then(r => {
       refreshComments();
       // Clear the deletion list and remove styling from the trash can
-      setId(DELETE_ACTIVE, DELETE_INACTIVE);
+      removeClass(DELETE_BUTTON, DELETE_ACTIVE);
+      addClass(DELETE_BUTTON, DELETE_INACTIVE);
       commentsToDelete = new Set();
     });
   }

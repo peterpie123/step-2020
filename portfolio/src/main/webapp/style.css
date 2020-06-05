@@ -188,6 +188,7 @@ textarea {
   border-radius: 5px;
   width: 5%;
   margin-left: 1px;
+  transition: .5s;
 }
 
 .comment-toggle:hover {
@@ -217,6 +218,7 @@ textarea {
 
 .comment-delete .comment-toggle {
   background-color: #d42f26;
+  transition: .5s;
 }
 
 #comment-pagination-container {
@@ -237,23 +239,23 @@ textarea {
   transition: .3s;
 }
 
-#trash-inactive {
+.trash-inactive {
   color: lightgrey;
   transition: 1s;
 }
 
-#trash-inactive:hover {
+.trash-inactive:hover {
   color: lightgrey !important;
   cursor: auto !important;
 }
 
-#trash-active {
+.trash-active {
   color: #d42f26;
   cursor: pointer;
   transition: 1s;
 }
 
-#trash-active:hover {
+.trash-active:hover {
   cursor: pointer;
   color: #b3b3b8;
   transition: .3s;
@@ -284,7 +286,7 @@ textarea {
 }
 
 .shake-animated {
-  animation: shake .3s ease-in-out;
+  animation: shake .5s ease-in-out;
 }
 
 @keyframes rotate {
@@ -315,9 +317,9 @@ textarea {
 
 @keyframes shake {
   0% {transform: translateX(0px);}
-  10% {transform: translateX(-8px);}
-  30% {transform: translateX(8px);}
-  50% {transform: translateX(-15px);}
-  90% {transform: translateX(15px);}
+  20% {transform: translateX(-15px);}
+  40% {transform: translateX(15px);}
+  60% {transform: translateX(-15px);}
+  80% {transform: translateX(15px);}
   100% {transform: translateX(0px);}
 }
