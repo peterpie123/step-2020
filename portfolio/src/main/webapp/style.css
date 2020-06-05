@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
 }
@@ -121,20 +125,13 @@ textarea {
   border-radius: 5px;
 }
 
-#comments-container div {
-  border: 1px solid lightgrey;
-  border-radius: 5px;
-  margin-top: 5px;
-  padding-left: 10px;
-}
-
 #comment-name,
-#comment-text,
+#comment-text-input,
 #comment-submit {
   width: 100%;
   padding: 5px;
   margin-bottom: 5px;
-  box-sizing: border-box;
+  resize: vertical;
 }
 
 #comment-submit {
@@ -144,4 +141,71 @@ textarea {
 #comments-create input[type="submit"]:hover {
   background-color: #468887;
   cursor: pointer;
+}
+
+#comment-header h2 {
+  margin-top: 0;
+}
+
+#comment-header i {
+  float: right;
+}
+
+#comment-header i:hover {
+  color: #b3b3b8;
+  cursor: pointer;
+}
+
+#icon-selected {
+  color: #468887;
+}
+
+#num-comments {
+  vertical-align: top;
+  float: right;
+  margin: 4px;
+  width: 40px;
+  padding: 5px;
+}
+
+.vertical-divider {
+  float: right;
+  border-right: 1px solid lightgrey;
+  padding-right: 5px;
+  margin-right: 5px;
+}
+
+.comment-toggle {
+  float: right;
+  background-color: #468887;
+  border-radius: 5px;
+  width: 5%;
+  margin-left: 1px;
+}
+
+.comment-toggle:hover {
+  cursor: pointer;
+  background-color: #b3b3b8;
+}
+
+.comment {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  margin-top: 5px;
+  padding-left: 10px;
+  overflow: auto;
+  display: flex;
+}
+
+.comment-text {
+  float: left;
+  width: 95%;
+}
+
+.comment-delete {
+  color: darkgrey;
+}
+
+.comment-delete .comment-toggle {
+  background-color: #d42f26;
 }

@@ -14,31 +14,45 @@
 
 package com.google.sps.data;
 
-import java.util.Date;
-import java.text.DateFormat;
 import java.lang.Comparable;
 import com.google.appengine.api.datastore.Entity;
-import javax.servlet.http.HttpServletRequest;
+import com.google.appengine.api.datastore.Key;
 
 /** Represents a single comment from a user. */
 public class Comment implements Comparable<Comment> {
-  public static final String COMMENT_NAME = "name";
-  public static final String COMMENT_TEXT = "comment";
-  public static final String COMMENT_TIMESTAMP = "timestamp";
+  /** Key for the name of the commenter */
+  static final String COMMENT_NAME = "name";
+  /** Key for the comment contents */
+  static final String COMMENT_TEXT = "comment";
+  /** Key for the timestamp */
+  static final String COMMENT_TIMESTAMP = "timestamp";
 
+  /** Internal counter used for dynamically assigning an ID */
+  private static int commentCount = 0;
+
+  /** Text of the comment */
   private final String text;
+  /** Name of the person who submitted the comment */
   private final String name;
+  /** Time comment was created, in milliseconds since epoch (UTC) */
   private final long timestamp;
+  /** The ID of the key associated with the entity that keeps this comment in persistent storage. */
+  private final long id;
+  /** The key that keeps this comment in persistent storage */
+  private final Key key;
 
-  private Comment(String text, String name) {
-    this(text, name, System.currentTimeMillis());
-  }
-
-  /** Create a comment with a posted date of given milliseconds from the epoch */
-  private Comment(String text, String name, long timestamp) {
+  /** Create a comment with a posted date of given milliseconds from the epoch. */
+  public Comment(String text, String name, Key key, long timestamp) {
     this.text = text;
     this.name = name;
     this.timestamp = timestamp;
+    this.key = key;
+    this.id = key.getId();
+  }
+
+  /** Create a comment with the current time as creation date */
+  public Comment(String text, String name, Key key) {
+    this(text, name, key, System.currentTimeMillis());
   }
 
   /** Create a new Comment from an Entity representing a comment */
@@ -46,21 +60,7 @@ public class Comment implements Comparable<Comment> {
     String text = (String) entity.getProperty(COMMENT_TEXT);
     String name = (String) entity.getProperty(COMMENT_NAME);
     long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
-    return new Comment(text, name, time);
-  }
-
-  /** Create a new Comment from an incoming HTTP POST */
-  public static Comment fromHttpRequest(HttpServletRequest request) {
-    return new Comment(request.getParameter(COMMENT_TEXT), request.getParameter(COMMENT_NAME));
-  }
-
-  /** Converts this comment to an entity */
-  public Entity toEntity() {
-    Entity entity = new Entity("Comment");
-    entity.setProperty(COMMENT_TEXT, getText());
-    entity.setProperty(COMMENT_NAME, getName());
-    entity.setProperty(COMMENT_TIMESTAMP, getTimestamp());
-    return entity;
+    return new Comment(text, name, entity.getKey(), time);
   }
 
   public String getText() {
@@ -74,6 +74,14 @@ public class Comment implements Comparable<Comment> {
   /** Return milliseconds since the epoch, in UTC */
   public long getTimestamp() {
     return timestamp;
+  }
+
+  public long getId() {
+    return id;
+  }
+
+  public Key getKey() {
+    return key;
   }
 
   @Override
