@@ -27,6 +27,7 @@ input,
 textarea {
   border-radius: 3px;
   border: 1px solid black;
+  outline: none;
 }
 
 .mickey-media {
@@ -138,6 +139,7 @@ textarea {
 
 #comment-submit {
   background-color: #b3b3b8;
+  transition: .3s;
 }
 
 #comments-create button:hover {
