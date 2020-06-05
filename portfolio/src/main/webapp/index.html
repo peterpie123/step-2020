@@ -62,7 +62,7 @@
 
       <div id="comment-header">
         <h2 class="fa-stack">Comments</h2>
-        <i class="fas fa-trash fa-2x" onclick="deleteComments()"
+        <i class="fas fa-trash fa-2x" id="trash-inactive" onclick="deleteComments()"
          title="Delete Selected Comments"></i>
 
         <div class="vertical-divider">
@@ -73,8 +73,8 @@
         </div>
         
         <div class="vertical-divider">
-          <i class="fas fa-sync-alt fa-2x" title="Refresh" onclick="retrieveComments()"></i>
-          <input id="num-comments" type="number" placeholder="25" value="25" min="1"/>
+          <i class="fas fa-sync-alt fa-2x" title="Refresh" onclick="refreshComments()"></i>
+          <input id="num-comments" type="number" placeholder="5" value="5" min="1" max="25"/>
         </div>
       </div>
       <div id="comments-container"></div>

@@ -38,6 +38,8 @@ public class DataServlet extends HttpServlet {
   private static final String SORT_ASCENDING_QUERY = "sort-ascending";
   /** Parameter which contains the ID's of the comments to delete */
   private static final String DELETE_PARAMETER = "delete";
+  /** Query string that tells which comment to start at */
+  private static final String PAGINATION_START = "pagination";
   /** Default sorting method for retrieving comments */
   private static final CommentPersistHelper.SortMethod DEFAULT_SORT = CommentPersistHelper.SortMethod.ASCENDING;
 
@@ -51,6 +53,7 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    int paginationFrom;
     // The number of comments to send
     int commentsToSend;
     CommentPersistHelper.SortMethod sort;
@@ -66,7 +69,7 @@ public class DataServlet extends HttpServlet {
       commentsToSend = DEFAULT_COMMENT_COUNT;
     } catch(NumberFormatException e) {
       // Number of comments is malformed, so complain about it!
-      throw new IllegalArgumentException(request.getParameter(NUMBER_COMMENTS_QUERY) + 
+      throw new IllegalArgumentException(request.getParameter(NUMBER_COMMENTS_QUERY) +
                 " is an invalid number of comments. Aborting GET...");
     }
     try {
@@ -80,9 +83,23 @@ public class DataServlet extends HttpServlet {
       // Sort method is not included, so use default
       sort = DEFAULT_SORT;
     }
+    
+    try {
+      paginationFrom = Integer.parseInt(request.getParameter(PAGINATION_START));
+      if(paginationFrom < 0) {
+        paginationFrom = 0;
+      }
+    } catch(NullPointerException e) {
+      // Pagination isn't included, so just start at 0
+      paginationFrom = 0;
+    } catch(NumberFormatException e) {
+      // Pagination is malformed, so kick up a fuss
+      throw new IllegalArgumentException(request.getParameter(PAGINATION_START) +
+                " is an invalid pagination start. Aborting GET...");
+    }
 
     response.setContentType("application/json;");
-    response.getWriter().println(commentStore.stringifyComments(commentsToSend, sort));
+    response.getWriter().println(commentStore.stringifyComments(commentsToSend, sort, paginationFrom));
     // Send the total number of comments
     response.addIntHeader(TOTAL_NUMBER_HEADER, commentStore.getNumberComments());
   }

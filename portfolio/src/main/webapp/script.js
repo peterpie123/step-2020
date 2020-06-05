@@ -84,3 +84,53 @@ export function addClass(elementId, className) {
 export function removeClass(elementId, className) {
   document.getElementById(elementId).classList.remove(className);
 }
+
+/** Sets the ID of the given element to the new ID */
+export function setId(elementId, newId) {
+  document.getElementById(elementId).id = newId;
+}
+
+/** Returns a nicely-formatted string with information about time passed (e.g. 5 minutes ago).
+ *  Will ignore leap years. */
+export function timePassed(date) {
+  // Will be set to 's' if statement is plural
+  let plural = '';
+
+  // Seconds of difference
+  let seconds = Math.floor((new Date() - date) / 1000);
+  if(seconds < 60) {
+    return 'Seconds ago';
+  }
+
+  let minutes = Math.floor(seconds / 60);
+  if(minutes < 60) {
+    if(minutes > 1) {
+      plural = 's';
+    }
+    return `${minutes} minute${plural} ago`;
+  }
+
+  let hours = Math.floor(minutes / 60);
+  if(hours < 24) {
+    if(hours > 1) {
+      plural = 's';
+    }
+    return `${hours} hour${plural} ago`;
+  }
+
+  let days = Math.floor(hours / 24);
+  if(days < 365) {
+    // Ignore leap years
+    if(days > 1) {
+      plural = 's';
+    }
+    return `${days} day${plural} ago`;
+  }
+
+  // Ignore leap years
+  let years = Math.floor(days / 365);
+  if(years > 1) {
+    plural = 's';
+  }
+  return `${years} year${plural} ago`;
+}

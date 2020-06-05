@@ -34,7 +34,7 @@ textarea {
 }
 
 .social-icon {
-  width: 48px;
+  width: 68px;
   padding: 0 10px 0 10px;
 }
 
@@ -204,8 +204,45 @@ textarea {
 
 .comment-delete {
   color: darkgrey;
+  text-decoration: line-through;
 }
 
 .comment-delete .comment-toggle {
   background-color: #d42f26;
+}
+
+#comment-pagination-container {
+  margin: 5px 0;
+}
+
+.pagination-select input[type="button"]{
+  margin-right: 3px;
+}
+
+#pagination-selected input[type="button"] {
+  background-color: #468887;
+}
+
+#comment-pagination-container input[type="button"]:hover {
+  background-color: #b3b3b8;
+  cursor: pointer;
+}
+
+#trash-inactive {
+  color: lightgrey;
+}
+
+#trash-inactive:hover {
+  color: lightgrey !important;
+  cursor: auto !important;
+}
+
+#trash-active {
+  color: #d42f26;
+  cursor: pointer;
+}
+
+#trash-active:hover {
+  cursor: pointer;
+  color: #b3b3b8;
 }

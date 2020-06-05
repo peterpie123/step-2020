@@ -76,13 +76,20 @@ public class CommentPersistHelper {
     }
   }
 
-  /** Returns a JSON string of the comments list, sorted as given and returning numberComments
-   *  at a maximum. */
-  public String stringifyComments(int numberComments, SortMethod sort) {
+  /** Stringifies the comments in the desired order, including pagination */
+  public String stringifyComments(int numberComments, SortMethod sort, int paginationFrom) {
     Gson gson = new Gson();
     List<Comment> send;
     // List that will either be reversed or not, depending on the sort
     List<Comment> readList = null;
+
+    if(paginationFrom < 0) {
+      paginationFrom = 0;
+    }
+    if(paginationFrom > comments.size()) {
+      throw new IllegalArgumentException("Error: Cannot paginate starting at " + paginationFrom +
+                " when there are only " + comments.size() + " comments!");
+    }
 
     if(sort == SortMethod.ASCENDING) {
       readList = comments;
@@ -90,13 +97,13 @@ public class CommentPersistHelper {
       // Comments is already sorted, so just reverse
       readList = Lists.reverse(comments);
     }
-    
-    if(numberComments < comments.size()) {
-      // Will be the 'first' or 'last' elements of all comments, depending on sort
-      send = readList.subList(0, numberComments);
-    } else {
-      send = readList;
+
+    int paginationTo = numberComments + paginationFrom;
+    // Make sure pagination doesn't go out of bounds
+    if(paginationTo > comments.size()) {
+      paginationTo = comments.size();
     }
+    send = readList.subList(paginationFrom, paginationTo);
 
     return gson.toJson(send);
   }
