@@ -166,6 +166,15 @@ function animateElement(id, animationClass, animationTime) {
   setTimeout(() => removeClass(id, animationClass), animationTime);
 }
 
+/** Checks if the number of comments entered by the user is valid */
+function validNumberComments() {
+  let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  if (numComments.length > 0 && numComments > 0) {
+    return true;
+  }
+  return false;
+}
+
 /** Reads fields from comments-create and POSTs it to server. 
  *  Returns a promise attached to the POST request. */
 function submitComment() {
@@ -261,7 +270,12 @@ function getPaginationStartIndex() {
 
 /** Returns the total number of pages of comments that should be listed */
 function getNumberCommentPages() {
-  let numEachPage = pageComments.length;
+  let numEachPage;
+  if (validNumberComments()) {
+    numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  } else {
+    numEachPage = pageComments.length;
+  }
   return Math.ceil(totalNumComments / numEachPage);
 }
 
@@ -331,10 +345,10 @@ function refreshComments(from = getPaginationStartIndex(), filter = getCommentFi
   let queryString = `?${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}${filterQuery}`
 
   let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
-  if (numComments.length > 0 && numComments > 0) {
+  if (validNumberComments()) {
     queryString += '&' + NUM_COMMENTS_QUERY + '=' + numComments;
   } else {
-    // Shake the element to signify invalid value
+    // Shake the element to signify invalid value and don't add to query
     animateElement(NUM_COMMENTS_FIELD, SHAKE_CLASS, SHAKE_TIME);
   }
 
