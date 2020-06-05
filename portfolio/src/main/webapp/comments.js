@@ -179,7 +179,7 @@ function submitComment() {
   });
 }
 
-/** Adds the given comment to the page with the given ID. */
+/** Adds the given comment to the page. */
 function addSingleComment(comment) {
   let containerId = COMMENT_CONTAINER_PREFIX + comment.id;
 
@@ -193,7 +193,8 @@ function addSingleComment(comment) {
   let contentId = containerId + '-content';
   appendElement(containerId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
   // Add the name, time, and content
-  appendElement(contentId, 'p', `<b>${comment.name}</b>\t${timePassed(date)}`);
+  appendElement(contentId, 'p', `<b>${comment.name}</b>\t` +
+    `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
   appendElement(contentId, 'p', comment.text);
 
   // Add the element that will toggle deleting this comment
