@@ -17,6 +17,7 @@ package com.google.sps.data;
 import java.lang.Comparable;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
+import org.apache.commons.lang3.StringUtils;
 
 /** Represents a single comment from a user. */
 public class Comment implements Comparable<Comment> {
@@ -65,12 +66,7 @@ public class Comment implements Comparable<Comment> {
 
   /** Returns true if text or name (inclusive) contains the filter string, ignoring case */
   public boolean contains(String filter) {
-    if(filter == null) {
-      return true;
-    }
-    // Ignore case
-    filter = filter.toLowerCase();
-    return text.toLowerCase().contains(filter) || name.toLowerCase().contains(filter);
+    return StringUtils.containsIgnoreCase(text, filter) || StringUtils.containsIgnoreCase(name, filter);
   }
 
   public String getText() {
