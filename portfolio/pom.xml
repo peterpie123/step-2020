@@ -57,6 +57,7 @@
           <!-- TODO: set project ID. -->
           <deploy.projectId>pgeertsema-step-2020</deploy.projectId>
           <deploy.version>1</deploy.version>
+          <port>8081</port>
         </configuration>
       </plugin>
     </plugins>
