@@ -25,7 +25,7 @@
 			<p>My name is Peter Geertsema. I'm a rising Sophomore at the University of Maryland - College
 				Park where I study Computer Science and Economics. Go Terps!</p>
 
-			<img id="profile-picture" src="images/Personal_Picture.jpg"/>
+			<img id="profile-picture" src="images/Personal_Picture.jpg" />
 			<p><i>Pictured Above:</i> My notoriously fickle hair attaining sentience while parasailing
 				over San Pedro, Belize in January 2020</p>
 
@@ -52,9 +52,9 @@
 
 		<div id="comments-create">
 			<h1>Leave a comment</h1>
-      <input id="comment-name" name="name" type="text" placeholder="Your Name"/>
-      <textarea id="comment-text-input" name="comment" placeholder="Type your comment"></textarea>
-      <button id="comment-submit">Submit</button>
+			<input id="comment-name" name="name" type="text" placeholder="Your Name" />
+			<textarea id="comment-text-input" name="comment" placeholder="Type your comment"></textarea>
+			<button id="comment-submit">Submit</button>
 		</div>
 
 		<hr />
@@ -62,34 +62,33 @@
 		<div id="comment-header">
 			<h2 class="fa-stack">Comments</h2>
 			<button class="fas fa-trash fa-2x trash-inactive" id="comments-delete" onclick="deleteComments()"
-         title="Delete Selected Comments"></button>
+				title="Delete Selected Comments"></button>
 
 			<div class="vertical-divider">
-				<button class="fas fa-chevron-circle-down fa-2x" id="comment-oldest"
-          title="Oldest" onclick="commentSort(-1)"></button>
-				<button class="fas fa-chevron-circle-up fa-2x icon-selected" id="comment-newest"
-          title="Newest" onclick="commentSort(1)"></button>
+				<button class="fas fa-chevron-circle-down fa-2x" id="comment-oldest" title="Oldest"
+					onclick="commentSort(-1)"></button>
+				<button class="fas fa-chevron-circle-up fa-2x icon-selected" id="comment-newest" title="Newest"
+					onclick="commentSort(1)"></button>
 			</div>
 
 			<div class="vertical-divider">
-				<input id="num-comments" type="number" placeholder="5" value="5" min="1" max="25"/>
-        <button class="fas fa-sync-alt fa-2x" id="comment-refresh-button" title="Refresh"></button>
-        </div>
-
-				<div class="vertical-divider">
-					<input type="text" name="comment-filter" id="comment-filter" placeholder="Search"/>
-        </div>
-				</div>
-				<div id="comments-container"></div>
-
-				<hr />
-				<div id="social-container">
-					<a href="https://github.com/peterpie123"><img class="social-icon"
-                                                  src="images/GitHub_Mark.png"/></a>
-						<a href="https://www.linkedin.com/in/peter-geertsema/"><img class="social-icon"
-                                                                src="images/LinkedIn_Logo.png"/></a>
-				</div>
+				<input id="num-comments" type="number" placeholder="5" value="5" min="1" max="25" />
+				<button class="fas fa-sync-alt fa-2x" id="comment-refresh-button" title="Refresh"></button>
 			</div>
+
+			<div class="vertical-divider">
+				<input type="text" name="comment-filter" id="comment-filter" placeholder="Search" />
+			</div>
+		</div>
+		<div id="comments-container"></div>
+
+		<hr />
+		<div id="social-container">
+			<a href="https://github.com/peterpie123"><img class="social-icon" src="images/GitHub_Mark.png" /></a>
+			<a href="https://www.linkedin.com/in/peter-geertsema/"><img class="social-icon"
+					src="images/LinkedIn_Logo.png" /></a>
+		</div>
+	</div>
 </body>
 
 </html>

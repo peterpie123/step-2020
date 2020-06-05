@@ -16,7 +16,6 @@ package com.google.sps.data;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import com.google.gson.Gson;
@@ -28,11 +27,12 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.Key;
 
 /** Keeps track of persisted comments with ability to add/remove comments */
 public class CommentPersistHelper {
-  public enum SortMethod { ASCENDING, DESCENDING }
+  public enum SortMethod {
+    ASCENDING, DESCENDING
+  }
 
   private final DatastoreService datastore;
   private final List<Comment> comments;
@@ -66,9 +66,9 @@ public class CommentPersistHelper {
 
   /** Deletes the given comment permanently. */
   public void deleteComment(long id) {
-    for(int i = 0; i < comments.size(); i++) {
+    for (int i = 0; i < comments.size(); i++) {
       Comment comment = comments.get(i);
-      if(comment.getId() == id) {
+      if (comment.getId() == id) {
         // Remove the comment from persistent storage and the comments list
         comments.remove(i);
         datastore.delete(comment.getKey());
@@ -79,7 +79,7 @@ public class CommentPersistHelper {
 
   /** Returns only comments with either name or content containing filter */
   private List<Comment> filterList(String filter) {
-    if(filter == null) {
+    if (filter == null) {
       // Don't filter
       return comments;
     }
@@ -88,33 +88,35 @@ public class CommentPersistHelper {
     return comments.stream().filter(c -> c.contains(filter)).collect(Collectors.toList());
   }
 
-  /** Stringifies the comments in the desired order, including pagination and filtering */
-  public String stringifyComments(int numberComments, SortMethod sort, 
-                                  int paginationFrom, String filter) {
+  /**
+   * Stringifies the comments in the desired order, including pagination and
+   * filtering
+   */
+  public String stringifyComments(int numberComments, SortMethod sort, int paginationFrom, String filter) {
     Gson gson = new Gson();
     List<Comment> filteredList = filterList(filter);
     List<Comment> send;
     // List that will either be reversed or not, depending on the sort
     List<Comment> readList = null;
 
-    if(paginationFrom < 0) {
+    if (paginationFrom < 0) {
       paginationFrom = 0;
     }
-    if(paginationFrom > filteredList.size()) {
-      throw new IllegalArgumentException("Error: Cannot paginate starting at " + paginationFrom +
-                " when there are only " + filteredList.size() + " comments!");
+    if (paginationFrom > filteredList.size()) {
+      throw new IllegalArgumentException("Error: Cannot paginate starting at " + paginationFrom
+          + " when there are only " + filteredList.size() + " comments!");
     }
 
-    if(sort == SortMethod.ASCENDING) {
+    if (sort == SortMethod.ASCENDING) {
       readList = filteredList;
-    } else if(sort == SortMethod.DESCENDING) {
+    } else if (sort == SortMethod.DESCENDING) {
       // Comments is already sorted, so just reverse
       readList = Lists.reverse(filteredList);
     }
 
     int paginationTo = numberComments + paginationFrom;
     // Make sure pagination doesn't go out of bounds
-    if(paginationTo > filteredList.size()) {
+    if (paginationTo > filteredList.size()) {
       paginationTo = filteredList.size();
     }
     send = readList.subList(paginationFrom, paginationTo);

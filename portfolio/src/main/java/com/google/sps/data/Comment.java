@@ -37,7 +37,10 @@ public class Comment implements Comparable<Comment> {
   private final String name;
   /** Time comment was created, in milliseconds since epoch (UTC) */
   private final long timestamp;
-  /** The ID of the key associated with the entity that keeps this comment in persistent storage. */
+  /**
+   * The ID of the key associated with the entity that keeps this comment in
+   * persistent storage.
+   */
   private final long id;
   /** The key that keeps this comment in persistent storage */
   private final Key key;
@@ -64,7 +67,10 @@ public class Comment implements Comparable<Comment> {
     return new Comment(text, name, entity.getKey(), time);
   }
 
-  /** Returns true if text or name (inclusive) contains the filter string, ignoring case */
+  /**
+   * Returns true if text or name (inclusive) contains the filter string, ignoring
+   * case
+   */
   public boolean contains(String filter) {
     return StringUtils.containsIgnoreCase(text, filter) || StringUtils.containsIgnoreCase(name, filter);
   }
@@ -93,9 +99,9 @@ public class Comment implements Comparable<Comment> {
   @Override
   public int compareTo(Comment other) {
     int compare = (int) (other.timestamp - timestamp);
-    
+
     // If timestamps are equal, sort by name field
-    if(compare == 0) {
+    if (compare == 0) {
       return name.compareTo(other.name);
     }
     return compare;
@@ -112,16 +118,16 @@ public class Comment implements Comparable<Comment> {
 
   @Override
   public boolean equals(Object other) {
-    if(!(other instanceof Comment)) {
+    if (!(other instanceof Comment)) {
       return false;
     }
     Comment c = (Comment) other;
 
-    if(this == c) {
+    if (this == c) {
       return true;
     }
 
-    if(!(name.equals(c.name) && text.equals(c.text) && timestamp == c.timestamp)) {
+    if (!(name.equals(c.name) && text.equals(c.text) && timestamp == c.timestamp)) {
       return false;
     }
     return true;
