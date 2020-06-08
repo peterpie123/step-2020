@@ -27,6 +27,7 @@ input,
 textarea {
   border-radius: 3px;
   border: 1px solid black;
+  outline: none;
 }
 
 .mickey-media {
@@ -84,6 +85,7 @@ textarea {
 .nav-item a:hover {
   background-color: #468887;
   border-radius: 5px;
+  transition: .3s;
 }
 
 #sidebar {
@@ -106,6 +108,7 @@ textarea {
 #agree-container li:hover {
   cursor: pointer;
   color: #468887;
+  transition: .3s
 }
 
 #comments-create {
@@ -136,33 +139,39 @@ textarea {
 
 #comment-submit {
   background-color: #b3b3b8;
+  transition: .3s;
 }
 
-#comments-create input[type="submit"]:hover {
+#comments-create button:hover {
   background-color: #468887;
   cursor: pointer;
+  transition: .3s;
 }
 
 #comment-header h2 {
   margin-top: 0;
 }
 
-#comment-header i {
+#comment-header button {
   float: right;
+  background: none;
+  border: none;
+  padding: 0;
 }
 
-#comment-header i:hover {
+#comment-header button:hover {
   color: #b3b3b8;
   cursor: pointer;
+  transition: .3s;
 }
 
-#icon-selected {
+.icon-selected {
   color: #468887;
 }
 
 #num-comments {
   vertical-align: top;
-  float: right;
+  float: left;
   margin: 4px;
   width: 40px;
   padding: 5px;
@@ -181,11 +190,13 @@ textarea {
   border-radius: 5px;
   width: 5%;
   margin-left: 1px;
+  transition: .5s;
 }
 
 .comment-toggle:hover {
   cursor: pointer;
   background-color: #b3b3b8;
+  transition: .3s;
 }
 
 .comment {
@@ -209,6 +220,7 @@ textarea {
 
 .comment-delete .comment-toggle {
   background-color: #d42f26;
+  transition: .5s;
 }
 
 #comment-pagination-container {
@@ -226,23 +238,90 @@ textarea {
 #comment-pagination-container input[type="button"]:hover {
   background-color: #b3b3b8;
   cursor: pointer;
+  transition: .3s;
 }
 
-#trash-inactive {
+.trash-inactive {
   color: lightgrey;
+  transition: 1s;
 }
 
-#trash-inactive:hover {
+.trash-inactive:hover {
   color: lightgrey !important;
   cursor: auto !important;
 }
 
-#trash-active {
+.trash-active {
   color: #d42f26;
   cursor: pointer;
+  transition: 1s;
 }
 
-#trash-active:hover {
+.trash-active:hover {
   cursor: pointer;
   color: #b3b3b8;
+  transition: .3s;
+}
+
+#comment-filter {
+  padding: 5px;
+  margin: 4px;
+}
+
+.rotate-animated {
+  animation: rotate 1s ease;
+  animation-iteration-count: 1;
+}
+
+.pop-animated {
+  animation: popOut .75s ease-in-out;
+  animation-iteration-count: 1;
+  background-color: #468887;
+}
+
+.transform-up-animated {
+  animation: transformUp .3s ease-in-out;
+}
+
+.transform-down-animated {
+  animation: transformDown .3s ease-in-out;
+}
+
+.shake-animated {
+  animation: shake .5s ease-in-out;
+}
+
+@keyframes rotate {
+  0% {transform: rotate(0deg);}
+  100% {transform: rotate(180deg);}
+}
+
+@keyframes popOut {
+  0% {transform: scale3d(.5, .5, .5);}
+  20% {transform: scale3d(1.1, 1.1, 1.1);}
+  40% {transform: scale3d(.8, .8, .8);}
+  60% {transform: scale3d(1.05, 1.05, 1.05);}
+  80% {transform: scale3d(.95, .95, .95);}
+  100% {transform: scale3d(1, 1, 1);}
+}
+
+@keyframes transformUp {
+  0% {transform: translateY(0px);}
+  50% {transform: translateY(-20px);}
+  100% {transform: translateY(0px);}
+}
+
+@keyframes transformDown {
+  0% {transform: translateY(0px);}
+  50% {transform: translateY(20px);}
+  100% {transform: translateY(0px);}
+}
+
+@keyframes shake {
+  0% {transform: translateX(0px);}
+  20% {transform: translateX(-15px);}
+  40% {transform: translateX(15px);}
+  60% {transform: translateX(-15px);}
+  80% {transform: translateX(15px);}
+  100% {transform: translateX(0px);}
 }

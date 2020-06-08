@@ -38,6 +38,11 @@
       <artifactId>guava</artifactId>
       <version>29.0-jre</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.10</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -52,6 +57,7 @@
           <!-- TODO: set project ID. -->
           <deploy.projectId>pgeertsema-step-2020</deploy.projectId>
           <deploy.version>1</deploy.version>
+          <port>8081</port>
         </configuration>
       </plugin>
     </plugins>

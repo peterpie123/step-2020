@@ -23,12 +23,12 @@ const COMMENTS_URL = '/data';
 const COMMENTS_SORT_NEWEST = 1;
 /** Indicates that comments should be sorted with the oldest on top */
 const COMMENTS_SORT_OLDEST = -1;
-/** ID of the icon that indicates which direction to sort */
+/** Class of the icon that indicates which direction to sort */
 const COMMENTS_SORT_ICON = 'icon-selected';
 /** Icon corresponding to having the newest comment on top */
-const COMMENTS_ICON_NEWEST = 'fa-chevron-circle-up';
+const COMMENTS_ICON_NEWEST = 'comment-newest';
 /** Icon corresponding to having the oldest comment on top */
-const COMMENTS_ICON_OLDEST = 'fa-chevron-circle-down';
+const COMMENTS_ICON_OLDEST = 'comment-oldest';
 /** Query string for indicating how many comments to retrieve */
 const NUM_COMMENTS_QUERY = 'num-comments';
 /** Property for what the user typed/selected in an input field */
@@ -59,10 +59,46 @@ const PAGINATION_START = 'pagination';
 const PAGINATION_SELECTED = 'pagination-selected';
 /** Class name of the pagination buttons */
 const PAGINATION_SELECT = 'pagination-select';
-/** ID of the delete icon when inactive (No comments to delete) */
+/** Class of the delete icon when inactive (No comments to delete) */
 const DELETE_INACTIVE = 'trash-inactive';
-/** ID of the delete icon when active (Comments to delete) */
+/** Class of the delete icon when active (Comments to delete) */
 const DELETE_ACTIVE = 'trash-active';
+/** ID of the textbox where filter text goes */
+const COMMENT_FILTER_INPUT = 'comment-filter';
+/** Code corresponding to the enter key in a key event */
+const ENTER_CODE = 13;
+/** Query string for filtering comments */
+const FILTER_QUERY = 'filter';
+/** Class applied to an element to have it rotate */
+const ROTATE_CLASS = 'rotate-animated';
+/** The rotation animation takes 1 second */
+const ROTATE_TIME = 1000;
+/** ID of the comment refresh button */
+const REFRESH_BUTTON = 'comment-refresh-button';
+/** ID of the button clicked when a user wants to submit a comment */
+const CREATE_COMMENT_BUTTON = 'comment-submit';
+/** Field containing the name of the person who authored the comment */
+const COMMENT_NAME_FIELD = 'comment-name';
+/** Field containing the text of the comment to be POSTed */
+const COMMENT_TEXT_FIELD = 'comment-text-input';
+/** Class applied to an element to have it pop out */
+const POP_CLASS = 'pop-animated';
+/** The pop animation takes .75 seconds */
+const POP_TIME = 750;
+/** Class applied to an element to have it jitter upwards temporarily */
+const TRANSFORM_UP_CLASS = 'transform-up-animated';
+/** The transform animation takes .75 seconds */
+const TRANSFORM_UP_TIME = 300;
+/** Class applied to an element to have it jitter downwards temporarily */
+const TRANSFORM_DOWN_CLASS = 'transform-down-animated';
+/** The transform animation takes .75 seconds */
+const TRANSFORM_DOWN_TIME = 300;
+/** ID of the comment delete button */
+const DELETE_BUTTON = 'comments-delete';
+/** Class for the shake animation */
+const SHAKE_CLASS = 'shake-animated';
+/** Shake animation takes .5 seconds */
+const SHAKE_TIME = 500;
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -81,9 +117,78 @@ document.addEventListener('DOMContentLoaded', () => {
     // Retrieve comments data from the servlet and add to DOM
     refreshComments();
   }
+
+  if (documentHasElement(NUM_COMMENTS_FIELD)) {
+    // Refresh when the user presses enter
+    document.getElementById(NUM_COMMENTS_FIELD).addEventListener('keyup', e => {
+      if (e.keyCode === ENTER_CODE) {
+        let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+        refreshComments();
+      }
+    });
+  }
+
+  if (documentHasElement(COMMENT_FILTER_INPUT)) {
+    // Filter comments when the user presses enter
+    document.getElementById(COMMENT_FILTER_INPUT).addEventListener('keyup', e => {
+      if (e.keyCode === ENTER_CODE) {
+        // When the user presses enter, reset all pagination and filter
+        currCommentPage = 1;
+        refreshComments(0, getCommentFilter());
+      }
+    });
+  }
+
+  if (documentHasElement(REFRESH_BUTTON)) {
+    document.getElementById(REFRESH_BUTTON).addEventListener('click', e => {
+      refreshComments();
+    });
+  }
+
+  if (documentHasElement(CREATE_COMMENT_BUTTON)) {
+    document.getElementById(CREATE_COMMENT_BUTTON).addEventListener('click', e => {
+      submitComment().then(() => {
+        refreshComments();
+        // Clear field values and refocus on the name field
+        document.getElementById(COMMENT_NAME_FIELD).value = '';
+        document.getElementById(COMMENT_TEXT_FIELD).value = '';
+        document.getElementById(COMMENT_NAME_FIELD).focus();
+
+        animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
+      });
+    });
+  }
 });
 
-/** Adds the given comment to the page with the given ID. */
+/** Adds the animationClass to the given element for a given number of milliseconds */
+function animateElement(id, animationClass, animationTime) {
+  addClass(id, animationClass);
+  setTimeout(() => removeClass(id, animationClass), animationTime);
+}
+
+/** Checks if the number of comments entered by the user is valid */
+function validNumberComments() {
+  let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  if (numComments.length > 0 && numComments > 0) {
+    return true;
+  }
+  return false;
+}
+
+/** Reads fields from comments-create and POSTs it to server. 
+ *  Returns a promise attached to the POST request. */
+function submitComment() {
+  let name = retrieveProperty(COMMENT_NAME_FIELD, TEXT_SELECTION);
+  let text = retrieveProperty(COMMENT_TEXT_FIELD, TEXT_SELECTION);
+
+  let queryString = `?name=${name}&comment=${text}`;
+
+  return fetch(`${COMMENTS_URL}${queryString}`, {
+    method: "POST"
+  });
+}
+
+/** Adds the given comment to the page. */
 function addSingleComment(comment) {
   let containerId = COMMENT_CONTAINER_PREFIX + comment.id;
 
@@ -97,7 +202,8 @@ function addSingleComment(comment) {
   let contentId = containerId + '-content';
   appendElement(containerId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
   // Add the name, time, and content
-  appendElement(contentId, 'p', `<b>${comment.name}</b>\t${timePassed(date)}`);
+  appendElement(contentId, 'p', `<b>${comment.name}</b>\t` +
+    `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
   appendElement(contentId, 'p', comment.text);
 
   // Add the element that will toggle deleting this comment
@@ -132,16 +238,22 @@ function reverseComments() {
 function commentSort(sortDirection) {
   // Only change if the sorting direction has changed
   if (sortDirection !== commentsSort) {
-    // Remove the ID (removes coloring) from the current sort
-    document.getElementById(COMMENTS_SORT_ICON).id = '';
     commentsSort = sortDirection;
 
     if (sortDirection === COMMENTS_SORT_NEWEST) {
-      // Add the ID (color) to the icon corresponding to newest
-      document.getElementsByClassName(COMMENTS_ICON_NEWEST)[0].id = COMMENTS_SORT_ICON;
+      // Remove the coloring from the other icon
+      removeClass(COMMENTS_ICON_OLDEST, COMMENTS_SORT_ICON);
+
+      // Add the color to the icon corresponding to newest and animate
+      addClass(COMMENTS_ICON_NEWEST, COMMENTS_SORT_ICON);
+      animateElement(COMMENTS_ICON_NEWEST, TRANSFORM_UP_CLASS, TRANSFORM_UP_TIME);
     } else if (sortDirection === COMMENTS_SORT_OLDEST) {
-      // Add the ID (color) to the icon corresponding to oldest
-      document.getElementsByClassName(COMMENTS_ICON_OLDEST)[0].id = COMMENTS_SORT_ICON;
+      // Remove the coloring from the other icon
+      removeClass(COMMENTS_ICON_NEWEST, COMMENTS_SORT_ICON);
+
+      // Add the color to the icon corresponding to oldest and animate
+      addClass(COMMENTS_ICON_OLDEST, COMMENTS_SORT_ICON);
+      animateElement(COMMENTS_ICON_OLDEST, TRANSFORM_DOWN_CLASS, TRANSFORM_DOWN_TIME);
     }
 
     // Finally, re-update the comments section
@@ -158,7 +270,12 @@ function getPaginationStartIndex() {
 
 /** Returns the total number of pages of comments that should be listed */
 function getNumberCommentPages() {
-  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  let numEachPage;
+  if (validNumberComments()) {
+    numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  } else {
+    numEachPage = pageComments.length;
+  }
   return Math.ceil(totalNumComments / numEachPage);
 }
 
@@ -171,7 +288,7 @@ function paginate(num) {
 /** Adds the pagination section */
 function addPagination() {
   // Number of comments on each page
-  let numEachPage = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  let numEachPage = pageComments.length;
   let numPages = getNumberCommentPages();
 
   // Only add pagination if we need to
@@ -193,12 +310,24 @@ function addPagination() {
   }
 }
 
+/** Returns the filter contained in the filter text-box. Returns undefined if blank */
+function getCommentFilter() {
+  let property = retrieveProperty(COMMENT_FILTER_INPUT, TEXT_SELECTION);
+  if (property.length === 0) {
+    return undefined;
+  }
+  return property;
+}
+
 /** Retrieves comments from the server and places them on the DOM, clearing existing comments 
- *  By default, starts reading from the appropriate comment page */
-function refreshComments(from = getPaginationStartIndex()) {
-  deleteChildren(COMMENTS_CONTAINER);
-  pageComments = [];
+ *  By default, starts reading from the appropriate comment page and filters based on 
+ *  the contents of the search box. */
+function refreshComments(from = getPaginationStartIndex(), filter = getCommentFilter()) {
   let ascending = commentsSort === COMMENTS_SORT_NEWEST ? true : false;
+  // Query string built from filter. Blank if no filter
+  let filterQuery;
+
+  animateElement(REFRESH_BUTTON, ROTATE_CLASS, ROTATE_TIME);
 
   // Reset to first page if the currently selected page is out of bounds
   if (getNumberCommentPages() < currCommentPage) {
@@ -206,18 +335,35 @@ function refreshComments(from = getPaginationStartIndex()) {
     from = 0;
   }
 
+  if (filter !== undefined) {
+    filterQuery = '&' + FILTER_QUERY + '=' + encodeURI(filter);
+  } else {
+    filterQuery = '';
+  }
+
+  // Contains all the query strings for the GET request
+  let queryString = `?${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}${filterQuery}`
+
+  let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
+  if (validNumberComments()) {
+    queryString += '&' + NUM_COMMENTS_QUERY + '=' + numComments;
+  } else {
+    // Shake the element to signify invalid value and don't add to query
+    animateElement(NUM_COMMENTS_FIELD, SHAKE_CLASS, SHAKE_TIME);
+  }
+
   // Construct a query string with the appropriate number of comments being retrieved
-  fetch(`${COMMENTS_URL}?${NUM_COMMENTS_QUERY}=` +
-    `${retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION)}&` +
-    `${SORT_QUERY_STRING}=${ascending}&${PAGINATION_START}=${from}`).then(
+  fetch(`${COMMENTS_URL}${queryString}`).then(
     /* Convert from response stream */r => {
-        // Get the total number of stored comments
-        totalNumComments = r.headers.get(TOTAL_NUMBER_HEADER);
-        return r.json();
-      }).then(comments => {
-        addComments(comments);
-        addPagination();
-      });
+      // Get the total number of stored comments
+      totalNumComments = r.headers.get(TOTAL_NUMBER_HEADER);
+      return r.json();
+    }).then(comments => {
+      deleteChildren(COMMENTS_CONTAINER);
+      pageComments = [];
+      addComments(comments);
+      addPagination();
+    });
 }
 
 /** Prepares the given comment ID for deletion */
@@ -227,18 +373,20 @@ function prepareDelete(id) {
     commentsToDelete.delete(id);
     removeClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
-    // Remove color of trash can if none are to be deleted
+    // Remove color of delete button if none are to be deleted
     if (commentsToDelete.size === 0) {
-      setId(DELETE_ACTIVE, DELETE_INACTIVE);
+      removeClass(DELETE_BUTTON, DELETE_ACTIVE);
+      addClass(DELETE_BUTTON, DELETE_INACTIVE);
     }
   } else {
     // Add to deletion
     commentsToDelete.add(id);
     addClass(COMMENT_CONTAINER_PREFIX + id, COMMENT_DELETE_CLASS);
 
-    // Add color fo trash can if this is the first to be added
+    // Add styling to delete button if this is the first to be added
     if (commentsToDelete.size === 1) {
-      setId(DELETE_INACTIVE, DELETE_ACTIVE);
+      removeClass(DELETE_BUTTON, DELETE_INACTIVE);
+      addClass(DELETE_BUTTON, DELETE_ACTIVE)
     }
   }
 }
@@ -247,6 +395,8 @@ function prepareDelete(id) {
 function deleteComments() {
   if (commentsToDelete.size > 0) {
     let deleteString = '?';
+
+    animateElement(DELETE_BUTTON, POP_CLASS, POP_TIME);
 
     Array.from(commentsToDelete).forEach((id, index) => {
       if (index > 0) {
@@ -260,7 +410,8 @@ function deleteComments() {
     }).then(r => {
       refreshComments();
       // Clear the deletion list and remove styling from the trash can
-      setId(DELETE_ACTIVE, DELETE_INACTIVE);
+      removeClass(DELETE_BUTTON, DELETE_ACTIVE);
+      addClass(DELETE_BUTTON, DELETE_INACTIVE);
       commentsToDelete = new Set();
     });
   }

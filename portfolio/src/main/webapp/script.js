@@ -54,7 +54,7 @@ export function appendElement(parentId, tagName, innerHtml, elementId = undefine
   if (onclick !== undefined) {
     tag.onclick = onclick;
   }
-  if(className !== undefined) {
+  if (className !== undefined) {
     tag.className = className;
   }
   parent.appendChild(tag);
@@ -98,30 +98,30 @@ export function timePassed(date) {
 
   // Seconds of difference
   let seconds = Math.floor((new Date() - date) / 1000);
-  if(seconds < 60) {
+  if (seconds < 60) {
     return 'Seconds ago';
   }
 
   let minutes = Math.floor(seconds / 60);
-  if(minutes < 60) {
-    if(minutes > 1) {
+  if (minutes < 60) {
+    if (minutes > 1) {
       plural = 's';
     }
     return `${minutes} minute${plural} ago`;
   }
 
   let hours = Math.floor(minutes / 60);
-  if(hours < 24) {
-    if(hours > 1) {
+  if (hours < 24) {
+    if (hours > 1) {
       plural = 's';
     }
     return `${hours} hour${plural} ago`;
   }
 
   let days = Math.floor(hours / 24);
-  if(days < 365) {
+  if (days < 365) {
     // Ignore leap years
-    if(days > 1) {
+    if (days > 1) {
       plural = 's';
     }
     return `${days} day${plural} ago`;
@@ -129,7 +129,7 @@ export function timePassed(date) {
 
   // Ignore leap years
   let years = Math.floor(days / 365);
-  if(years > 1) {
+  if (years > 1) {
     plural = 's';
   }
   return `${years} year${plural} ago`;
