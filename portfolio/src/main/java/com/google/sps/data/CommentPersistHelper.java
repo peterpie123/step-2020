@@ -56,6 +56,7 @@ public class CommentPersistHelper {
     Entity entity = new Entity("Comment");
     entity.setProperty(Comment.COMMENT_TEXT, request.getParameter(Comment.COMMENT_TEXT));
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
+    entity.setProperty(Comment.COMMENT_PICTURE_URL, value);
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
     // Store the comment so it persists
     datastore.put(entity);

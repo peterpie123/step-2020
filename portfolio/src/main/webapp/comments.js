@@ -99,6 +99,10 @@ const DELETE_BUTTON = 'comments-delete';
 const SHAKE_CLASS = 'shake-animated';
 /** Shake animation takes .5 seconds */
 const SHAKE_TIME = 500;
+/** ID of the file input */
+const IMAGE_ATTACHMENT_BUTTON = 'comment-attachment';
+/** URL for the image servlet */
+const IMAGE_SERVLET_URL = '/image';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -110,6 +114,8 @@ let commentsToDelete = new Set();
 let totalNumComments;
 /** The current page of comments that's on */
 let currCommentPage = 1;
+/** The URL for an image upload */
+let imageUploadUrl;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -122,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Refresh when the user presses enter
     document.getElementById(NUM_COMMENTS_FIELD).addEventListener('keyup', e => {
       if (e.keyCode === ENTER_CODE) {
-        let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
         refreshComments();
       }
     });
@@ -156,6 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
       });
+    });
+  }
+
+  if(documentHasElement(IMAGE_ATTACHMENT_BUTTON)) {
+    fetch(IMAGE_SERVLET_URL).then(response => response.text()).then(text => {
+      console.log(text);
+      imageUploadUrl = text;
     });
   }
 });

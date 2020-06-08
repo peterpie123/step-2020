@@ -27,6 +27,8 @@ public class Comment implements Comparable<Comment> {
   static final String COMMENT_TEXT = "comment";
   /** Key for the timestamp */
   static final String COMMENT_TIMESTAMP = "timestamp";
+  /** URL for the attached picture */
+  static final String COMMENT_PICTURE_URL = "picture";
 
   /** Internal counter used for dynamically assigning an ID */
   private static int commentCount = 0;
@@ -44,19 +46,22 @@ public class Comment implements Comparable<Comment> {
   private final long id;
   /** The key that keeps this comment in persistent storage */
   private final Key key;
+  /** URL for an attached image. null if there is none */
+  private final String imageUrl;
 
   /** Create a comment with a posted date of given milliseconds from the epoch. */
-  public Comment(String text, String name, Key key, long timestamp) {
+  public Comment(String text, String name, Key key, long timestamp, String imageUrl) {
     this.text = text;
     this.name = name;
     this.timestamp = timestamp;
     this.key = key;
     this.id = key.getId();
+    this.imageUrl = imageUrl;
   }
 
   /** Create a comment with the current time as creation date */
   public Comment(String text, String name, Key key) {
-    this(text, name, key, System.currentTimeMillis());
+    this(text, name, key, System.currentTimeMillis(), null);
   }
 
   /** Create a new Comment from an Entity representing a comment */
@@ -64,7 +69,12 @@ public class Comment implements Comparable<Comment> {
     String text = (String) entity.getProperty(COMMENT_TEXT);
     String name = (String) entity.getProperty(COMMENT_NAME);
     long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
-    return new Comment(text, name, entity.getKey(), time);
+    // URL is optional
+    String url = null;
+    if(entity.hasProperty(COMMENT_PICTURE_URL)) {
+      url = (String) entity.getProperty(COMMENT_PICTURE_URL);
+    }
+    return new Comment(text, name, entity.getKey(), time, url);
   }
 
   /**
