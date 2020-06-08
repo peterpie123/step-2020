@@ -150,24 +150,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (documentHasElement(CREATE_COMMENT_BUTTON)) {
-    document.getElementById(CREATE_COMMENT_BUTTON).addEventListener('click', e => {
-      submitComment().then(() => {
-        refreshComments();
-        // Clear field values and refocus on the name field
-        document.getElementById(COMMENT_NAME_FIELD).value = '';
-        document.getElementById(COMMENT_TEXT_FIELD).value = '';
-        document.getElementById(COMMENT_NAME_FIELD).focus();
+  // Hook the submit button in the form to prevent needing a page refresh
+  let commentForm = document.getElementById('comment-form');
+  commentForm.addEventListener('submit', e => {
+    e.preventDefault();
+    new FormData(commentForm);
+  });
+  commentForm.addEventListener('formdata', e => {
+    animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
+    submitComment(e.formData);
 
-        animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
-      });
-    });
-  }
+    refreshComments();
+    // Clear field values and refocus on the name field
+    document.getElementById(COMMENT_NAME_FIELD).value = '';
+    document.getElementById(COMMENT_TEXT_FIELD).value = '';
+    document.getElementById(IMAGE_ATTACHMENT_BUTTON).value = '';
+    document.getElementById(COMMENT_NAME_FIELD).focus();
+  });
 
   if(documentHasElement(IMAGE_ATTACHMENT_BUTTON)) {
     fetch(IMAGE_SERVLET_URL).then(response => response.text()).then(text => {
       imageUploadUrl = text;
-      document.getElementById('comment-form').action = imageUploadUrl;
     });
   }
 });
@@ -187,19 +190,11 @@ function validNumberComments() {
   return false;
 }
 
-/** Reads fields from comments-create and POSTs it to server. 
- *  Returns a promise attached to the POST request. */
-async function submitComment() {
-  let name = retrieveProperty(COMMENT_NAME_FIELD, TEXT_SELECTION);
-  let text = retrieveProperty(COMMENT_TEXT_FIELD, TEXT_SELECTION);
-
-  let queryString = `?name=${name}&comment=${text}`;
-
-  let file = await document.getElementById(IMAGE_ATTACHMENT_BUTTON).files[0].text();
-
-  return fetch(`${COMMENTS_URL}${queryString}?image=${file}`, {
-    method: "POST"
-  });
+/** Reads fields from comments-create and POSTs it to server. */
+function submitComment(formData) {
+  let request = new XMLHttpRequest();
+  request.open('POST', imageUploadUrl, false); // False makes this request synchronous
+  request.send(formData);
 }
 
 /** Adds the given comment to the page. */
