@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if(documentHasElement(IMAGE_ATTACHMENT_BUTTON)) {
     fetch(IMAGE_SERVLET_URL).then(response => response.text()).then(text => {
-      console.log(text);
       imageUploadUrl = text;
+      document.getElementById('comment-form').action = imageUploadUrl;
     });
   }
 });
@@ -189,13 +189,15 @@ function validNumberComments() {
 
 /** Reads fields from comments-create and POSTs it to server. 
  *  Returns a promise attached to the POST request. */
-function submitComment() {
+async function submitComment() {
   let name = retrieveProperty(COMMENT_NAME_FIELD, TEXT_SELECTION);
   let text = retrieveProperty(COMMENT_TEXT_FIELD, TEXT_SELECTION);
 
   let queryString = `?name=${name}&comment=${text}`;
 
-  return fetch(`${COMMENTS_URL}${queryString}`, {
+  let file = await document.getElementById(IMAGE_ATTACHMENT_BUTTON).files[0].text();
+
+  return fetch(`${COMMENTS_URL}${queryString}?image=${file}`, {
     method: "POST"
   });
 }
@@ -217,6 +219,10 @@ function addSingleComment(comment) {
   appendElement(contentId, 'p', `<b>${comment.name}</b>\t` +
     `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
   appendElement(contentId, 'p', comment.text);
+
+  if(comment.imageUrl) {
+    appendElement(contentId, 'span', `<img src="${comment.imageUrl}"/>`)
+  }
 
   // Add the element that will toggle deleting this comment
   appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id),

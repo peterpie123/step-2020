@@ -128,6 +128,8 @@ public class DataServlet extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     // Create and add the new comment
     commentStore.addComment(request);
+
+    response.sendRedirect("/index.html");
   }
 
   @Override

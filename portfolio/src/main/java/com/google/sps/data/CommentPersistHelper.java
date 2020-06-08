@@ -16,8 +16,11 @@ package com.google.sps.data;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
 import com.google.gson.Gson;
 import com.google.common.collect.Lists;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -27,6 +30,14 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.appengine.api.images.ImagesService;
+import com.google.appengine.api.images.ImagesServiceFactory;
+import com.google.appengine.api.images.ServingUrlOptions;
 
 /** Keeps track of persisted comments with ability to add/remove comments */
 public class CommentPersistHelper {
@@ -56,7 +67,7 @@ public class CommentPersistHelper {
     Entity entity = new Entity("Comment");
     entity.setProperty(Comment.COMMENT_TEXT, request.getParameter(Comment.COMMENT_TEXT));
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
-    entity.setProperty(Comment.COMMENT_PICTURE_URL, value);
+    entity.setProperty(Comment.COMMENT_PICTURE_URL, getUploadedFileUrl(request));
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
     // Store the comment so it persists
     datastore.put(entity);
@@ -75,6 +86,44 @@ public class CommentPersistHelper {
         datastore.delete(comment.getKey());
         break;
       }
+    }
+  }
+
+  /** Returns a URL that points to the uploaded file, or null if the user didn't upload a file. */
+  private String getUploadedFileUrl(HttpServletRequest request) {
+    BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
+    List<BlobKey> blobKeys = blobs.get("image");
+
+    // User submitted form without selecting a file, so we can't get a URL. (dev server)
+    if (blobKeys == null || blobKeys.isEmpty()) {
+      return null;
+    }
+
+    // Our form only contains a single file input, so get the first index.
+    BlobKey blobKey = blobKeys.get(0);
+
+    // User submitted form without selecting a file, so we can't get a URL. (live server)
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    if (blobInfo.getSize() == 0) {
+      blobstoreService.delete(blobKey);
+      return null;
+    }
+
+    // We could check the validity of the file here, e.g. to make sure it's an image file
+    // https://stackoverflow.com/q/10779564/873165
+
+    // Use ImagesService to get a URL that points to the uploaded file.
+    ImagesService imagesService = ImagesServiceFactory.getImagesService();
+    ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
+
+    // To support running in Google Cloud Shell with AppEngine's devserver, we must use the relative
+    // path to the image, rather than the path returned by imagesService which contains a host.
+    try {
+      URL url = new URL(imagesService.getServingUrl(options));
+      return url.getPath();
+    } catch (MalformedURLException e) {
+      return imagesService.getServingUrl(options);
     }
   }
 

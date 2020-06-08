@@ -30,9 +30,6 @@ public class Comment implements Comparable<Comment> {
   /** URL for the attached picture */
   static final String COMMENT_PICTURE_URL = "picture";
 
-  /** Internal counter used for dynamically assigning an ID */
-  private static int commentCount = 0;
-
   /** Text of the comment */
   private final String text;
   /** Name of the person who submitted the comment */
@@ -104,6 +101,10 @@ public class Comment implements Comparable<Comment> {
 
   public Key getKey() {
     return key;
+  }
+
+  public String getImageUrl() {
+    return imageUrl;
   }
 
   @Override
