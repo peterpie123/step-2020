@@ -114,8 +114,6 @@ let commentsToDelete = new Set();
 let totalNumComments;
 /** The current page of comments that's on */
 let currCommentPage = 1;
-/** The URL for an image upload */
-let imageUploadUrl;
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -158,21 +156,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   commentForm.addEventListener('formdata', e => {
     animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
-    submitComment(e.formData);
-
-    refreshComments();
-    // Clear field values and refocus on the name field
-    document.getElementById(COMMENT_NAME_FIELD).value = '';
-    document.getElementById(COMMENT_TEXT_FIELD).value = '';
-    document.getElementById(IMAGE_ATTACHMENT_BUTTON).value = '';
-    document.getElementById(COMMENT_NAME_FIELD).focus();
-  });
-
-  if(documentHasElement(IMAGE_ATTACHMENT_BUTTON)) {
-    fetch(IMAGE_SERVLET_URL).then(response => response.text()).then(text => {
-      imageUploadUrl = text;
+    submitComment(e.formData).then(() => {
+      refreshComments();
+      // Clear field values and refocus on the name field
+      document.getElementById(COMMENT_NAME_FIELD).value = '';
+      document.getElementById(COMMENT_TEXT_FIELD).value = '';
+      document.getElementById(IMAGE_ATTACHMENT_BUTTON).value = '';
+      document.getElementById(COMMENT_NAME_FIELD).focus();
     });
-  }
+  });
 });
 
 /** Adds the animationClass to the given element for a given number of milliseconds */
@@ -192,9 +184,12 @@ function validNumberComments() {
 
 /** Reads fields from comments-create and POSTs it to server. */
 function submitComment(formData) {
-  let request = new XMLHttpRequest();
-  request.open('POST', imageUploadUrl, false); // False makes this request synchronous
-  request.send(formData);
+  // Retrieve a new URL to upload to and 
+  return fetch(IMAGE_SERVLET_URL).then(response => response.text()).then(imageUploadUrl => {
+    let request = new XMLHttpRequest();
+    request.open('POST', imageUploadUrl, false); // False makes this request synchronous
+    request.send(formData);
+  });
 }
 
 /** Adds the given comment to the page. */
@@ -215,7 +210,7 @@ function addSingleComment(comment) {
     `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
   appendElement(contentId, 'p', comment.text);
 
-  if(comment.imageUrl) {
+  if (comment.imageUrl) {
     appendElement(contentId, 'span', `<img src="${comment.imageUrl}"/>`)
   }
 
@@ -315,10 +310,8 @@ function addPagination() {
       if (i === currCommentPage) {
         buttonId = PAGINATION_SELECTED;
       }
-
       appendElement(PAGINATION_CONTAINER, 'span', `<input type="button" value="${i}"/>`,
         buttonId, /* onclick */() => paginate(i), PAGINATION_SELECT);
-
     }
   }
 }
