@@ -191,8 +191,8 @@ textarea {
   width: 5%;
   margin-left: 1px;
   transition: .5s;
-  position: absolute;
-  height: calc(100% - 30px);
+  /* position: absolute;
+  height: calc(100% - 30px); */
 }
 
 .comment-toggle:hover {
@@ -291,6 +291,12 @@ textarea {
 
 .comment-analysis-box {
   float: left;
+  width: 95%;
+}
+
+.comment-body {
+  display: flex;
+  overflow: auto;
 }
 
 .rotate-animated {

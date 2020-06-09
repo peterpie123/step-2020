@@ -228,9 +228,13 @@ function addSingleComment(comment) {
   let date = new Date(0);
   date.setUTCMilliseconds(comment.timestamp);
 
+  // ID for the container that houses information and the toggles
+  let bodyId = containerId + '-body';
+  appendElement(containerId, 'div', '', bodyId, undefined, 'comment-body');
+
   // ID for the container which houses the information for a comment
   let contentId = containerId + '-content';
-  appendElement(containerId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
+  appendElement(bodyId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
   // Add the name, time, and content
   appendElement(contentId, 'p', `<b>${comment.name}</b>\t` +
     `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
@@ -242,12 +246,12 @@ function addSingleComment(comment) {
   }
 
   // Add the element that will toggle deleting this comment
-  appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id),
+  appendElement(bodyId, 'div', '', undefined, () => prepareDelete(comment.id),
     COMMENT_SELECT_CLASS);
 
   // Add the element that will let the user see extra comment information
   let expandId = comment.id + '-expand';
-  appendElement(containerId, 'i', '', expandId, () => expand(comment, expandId, containerId));
+  appendElement(bodyId, 'i', '', expandId, () => expand(comment, expandId, containerId));
   addClass(expandId, 'fas');
   addClass(expandId, 'fa-caret-square-down');
   addClass(expandId, 'fa-2x');
