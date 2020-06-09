@@ -123,6 +123,7 @@ public class CommentPersistHelper {
       URL url = new URL(imagesService.getServingUrl(options));
       return url.getPath();
     } catch (MalformedURLException e) {
+      // Return normally if servingUrl is already a relative path
       return imagesService.getServingUrl(options);
     }
   }
