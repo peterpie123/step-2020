@@ -191,8 +191,6 @@ textarea {
   width: 5%;
   margin-left: 1px;
   transition: .5s;
-  /* position: absolute;
-  height: calc(100% - 30px); */
 }
 
 .comment-toggle:hover {
