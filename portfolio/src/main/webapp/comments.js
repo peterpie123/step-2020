@@ -99,6 +99,12 @@ const DELETE_BUTTON = 'comments-delete';
 const SHAKE_CLASS = 'shake-animated';
 /** Shake animation takes .5 seconds */
 const SHAKE_TIME = 500;
+/** ID of the file input */
+const IMAGE_ATTACHMENT_BUTTON = 'comment-attachment';
+/** URL for the image servlet */
+const IMAGE_SERVLET_URL = '/image';
+/** ID of the comment submission form */
+const COMMENT_FORM = 'comment-form';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -122,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Refresh when the user presses enter
     document.getElementById(NUM_COMMENTS_FIELD).addEventListener('keyup', e => {
       if (e.keyCode === ENTER_CODE) {
-        let numComments = retrieveProperty(NUM_COMMENTS_FIELD, TEXT_SELECTION);
         refreshComments();
       }
     });
@@ -145,19 +150,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (documentHasElement(CREATE_COMMENT_BUTTON)) {
-    document.getElementById(CREATE_COMMENT_BUTTON).addEventListener('click', e => {
-      submitComment().then(() => {
-        refreshComments();
-        // Clear field values and refocus on the name field
-        document.getElementById(COMMENT_NAME_FIELD).value = '';
-        document.getElementById(COMMENT_TEXT_FIELD).value = '';
-        document.getElementById(COMMENT_NAME_FIELD).focus();
-
-        animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
-      });
+  // Hook the submit button in the form to prevent needing a page refresh
+  let commentForm = document.getElementById(COMMENT_FORM);
+  commentForm.addEventListener('submit', e => {
+    e.preventDefault();
+    new FormData(commentForm);
+  });
+  commentForm.addEventListener('formdata', e => {
+    animateElement(CREATE_COMMENT_BUTTON, POP_CLASS, POP_TIME);
+    submitComment(e.formData).then(() => {
+      refreshComments();
+      // Clear field values and refocus on the name field
+      document.getElementById(COMMENT_NAME_FIELD).value = '';
+      document.getElementById(COMMENT_TEXT_FIELD).value = '';
+      document.getElementById(IMAGE_ATTACHMENT_BUTTON).value = '';
+      document.getElementById(COMMENT_NAME_FIELD).focus();
     });
-  }
+  });
 });
 
 /** Adds the animationClass to the given element for a given number of milliseconds */
@@ -175,16 +184,13 @@ function validNumberComments() {
   return false;
 }
 
-/** Reads fields from comments-create and POSTs it to server. 
- *  Returns a promise attached to the POST request. */
-function submitComment() {
-  let name = retrieveProperty(COMMENT_NAME_FIELD, TEXT_SELECTION);
-  let text = retrieveProperty(COMMENT_TEXT_FIELD, TEXT_SELECTION);
-
-  let queryString = `?name=${name}&comment=${text}`;
-
-  return fetch(`${COMMENTS_URL}${queryString}`, {
-    method: "POST"
+/** Reads fields from comments-create and POSTs it to server. */
+function submitComment(formData) {
+  // Retrieve a new URL to upload to and 
+  return fetch(IMAGE_SERVLET_URL).then(response => response.text()).then(imageUploadUrl => {
+    let request = new XMLHttpRequest();
+    request.open('POST', imageUploadUrl, false); // False makes this request synchronous
+    request.send(formData);
   });
 }
 
@@ -205,6 +211,10 @@ function addSingleComment(comment) {
   appendElement(contentId, 'p', `<b>${comment.name}</b>\t` +
     `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
   appendElement(contentId, 'p', comment.text);
+
+  if (comment.imageUrl) {
+    appendElement(contentId, 'span', `<img src="${comment.imageUrl}"/>`)
+  }
 
   // Add the element that will toggle deleting this comment
   appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id),
@@ -302,10 +312,8 @@ function addPagination() {
       if (i === currCommentPage) {
         buttonId = PAGINATION_SELECTED;
       }
-
       appendElement(PAGINATION_CONTAINER, 'span', `<input type="button" value="${i}"/>`,
         buttonId, /* onclick */() => paginate(i), PAGINATION_SELECT);
-
     }
   }
 }
