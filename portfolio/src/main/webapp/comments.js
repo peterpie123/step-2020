@@ -103,6 +103,8 @@ const SHAKE_TIME = 500;
 const IMAGE_ATTACHMENT_BUTTON = 'comment-attachment';
 /** URL for the image servlet */
 const IMAGE_SERVLET_URL = '/image';
+/** ID of the comment submission form */
+const COMMENT_FORM = 'comment-form';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -149,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Hook the submit button in the form to prevent needing a page refresh
-  let commentForm = document.getElementById('comment-form');
+  let commentForm = document.getElementById(COMMENT_FORM);
   commentForm.addEventListener('submit', e => {
     e.preventDefault();
     new FormData(commentForm);

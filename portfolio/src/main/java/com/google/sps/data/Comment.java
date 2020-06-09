@@ -15,6 +15,7 @@
 package com.google.sps.data;
 
 import java.lang.Comparable;
+import javax.annotation.Nullable;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import org.apache.commons.lang3.StringUtils;
@@ -43,11 +44,12 @@ public class Comment implements Comparable<Comment> {
   private final long id;
   /** The key that keeps this comment in persistent storage */
   private final Key key;
+  @Nullable
   /** URL for an attached image. null if there is none */
   private final String imageUrl;
 
   /** Create a comment with a posted date of given milliseconds from the epoch. */
-  public Comment(String text, String name, Key key, long timestamp, String imageUrl) {
+  public Comment(String text, String name, Key key, long timestamp, @Nullable String imageUrl) {
     this.text = text;
     this.name = name;
     this.timestamp = timestamp;
@@ -68,7 +70,7 @@ public class Comment implements Comparable<Comment> {
     long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
     // URL is optional
     String url = null;
-    if(entity.hasProperty(COMMENT_PICTURE_URL)) {
+    if (entity.hasProperty(COMMENT_PICTURE_URL)) {
       url = (String) entity.getProperty(COMMENT_PICTURE_URL);
     }
     return new Comment(text, name, entity.getKey(), time, url);
