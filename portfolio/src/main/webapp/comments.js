@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Import utlity functions, unfortunately cannot be line-wrapped
-import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass, setId, timePassed } from './script.js';
+import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass, setId, timePassed, removeElement } from './script.js';
 
 /** ID of the comments container */
 const COMMENTS_CONTAINER = 'comments-container';
@@ -110,12 +110,14 @@ const COMMENT_FORM = 'comment-form';
 let pageComments = [];
 /** How the comments are currently sorted */
 let commentsSort = COMMENTS_SORT_NEWEST;
-/** Comments currently selected for deletion */
+/** IDs of the comments currently selected for deletion */
 let commentsToDelete = new Set();
 /** The total number of comments on the server. Used for pagination */
 let totalNumComments;
 /** The current page of comments that's on */
 let currCommentPage = 1;
+/** IDs of the comments that are currently expanded */
+let expanded = new Set();
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -194,6 +196,28 @@ function submitComment(formData) {
   });
 }
 
+/** Shows GCloud analysis for the given comment */
+function expand(comment, expandId, containerId) {
+  let analysisId = comment.id + '-analysis';
+
+  // Toggle styling based on whether comment was expanded before
+  if (expanded.has(comment.id)) {
+    removeClass(expandId, 'comment-expanded');
+    expanded.delete(comment.id);
+
+    // Remove comment analysis
+    removeElement(analysisId);
+  } else {
+    addClass(expandId, 'comment-expanded');
+    expanded.add(comment.id);
+
+    // Add comment analysis
+    appendElement(containerId, 'div', `<hr><p>What's up!</p>`, analysisId, undefined, 'comment-analysis-box');
+  }
+
+  console.log(comment);
+}
+
 /** Adds the given comment to the page. */
 function addSingleComment(comment) {
   let containerId = COMMENT_CONTAINER_PREFIX + comment.id;
@@ -214,11 +238,20 @@ function addSingleComment(comment) {
 
   if (comment.imageUrl) {
     appendElement(contentId, 'span', `<img src="${comment.imageUrl}"/>`)
+
   }
 
   // Add the element that will toggle deleting this comment
   appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id),
     COMMENT_SELECT_CLASS);
+
+  // Add the element that will let the user see extra comment information
+  let expandId = comment.id + '-expand';
+  appendElement(containerId, 'i', '', expandId, () => expand(comment, expandId, containerId));
+  addClass(expandId, 'fas');
+  addClass(expandId, 'fa-caret-square-down');
+  addClass(expandId, 'fa-2x');
+  addClass(expandId, 'comment-expand');
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments

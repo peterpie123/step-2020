@@ -185,12 +185,14 @@ textarea {
 }
 
 .comment-toggle {
-  float: right;
+  right: 0;
   background-color: #468887;
   border-radius: 5px;
   width: 5%;
   margin-left: 1px;
   transition: .5s;
+  position: absolute;
+  height: calc(100% - 30px);
 }
 
 .comment-toggle:hover {
@@ -205,7 +207,7 @@ textarea {
   margin-top: 5px;
   padding-left: 10px;
   overflow: auto;
-  display: flex;
+  position: relative;
 }
 
 .comment-text {
@@ -266,6 +268,29 @@ textarea {
 #comment-filter {
   padding: 5px;
   margin: 4px;
+}
+
+.comment-expand {
+  bottom: 0;
+  position: absolute;
+  float: right;
+  right: 2px;
+  transition: .3s;
+}
+
+.comment-expand:hover {
+  cursor: pointer;
+  color: #b3b3b8;
+  transition: .3s;
+}
+
+.comment-expanded {
+  color: #468887;
+  transition: .3s;
+}
+
+.comment-analysis-box {
+  float: left;
 }
 
 .rotate-animated {
