@@ -203,7 +203,6 @@ textarea {
   border: 1px solid lightgrey;
   border-radius: 5px;
   margin-top: 5px;
-  padding-left: 10px;
   overflow: auto;
   position: relative;
 }
@@ -289,12 +288,15 @@ textarea {
 
 .comment-analysis-box {
   float: left;
-  width: 95%;
+  width: 100%;
+  border-top: 1px solid lightgrey;
+  padding-left: 10px;
 }
 
 .comment-body {
   display: flex;
   overflow: auto;
+  padding-left: 10px;
 }
 
 .rotate-animated {
