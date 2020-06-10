@@ -210,15 +210,25 @@ function expand(comment, expandId, containerId) {
     expanded.delete(comment.id);
 
     // Remove comment analysis
-    removeElement(analysisId);
+    document.getElementById(analysisId).style.maxHeight = null;
   } else {
     addClass(expandId, COMMENT_ANALYZE_EXPANDED);
+
     expanded.add(comment.id);
 
-    // Add comment analysis
-    appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
-    appendElement(analysisId, 'p', 'This is dummy text for a collapsible comment!');
-    appendElement(analysisId, 'p', comment.text);
+    if (documentHasElement(analysisId)) {
+
+    } else {
+      // Add comment analysis
+      appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
+      appendElement(analysisId, 'p', 'This is dummy text for a collapsible comment!');
+      appendElement(analysisId, 'p', comment.text);
+    }
+
+    let analysisElement = document.getElementById(analysisId)
+    analysisElement.style.maxHeight = analysisElement.scrollHeight + 'px';
+
+
 
     // fetch(`/analyze?id=${comment.id}`, {
     //   method: 'POST'
