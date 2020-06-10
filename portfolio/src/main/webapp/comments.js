@@ -105,6 +105,10 @@ const IMAGE_ATTACHMENT_BUTTON = 'comment-attachment';
 const IMAGE_SERVLET_URL = '/image';
 /** ID of the comment submission form */
 const COMMENT_FORM = 'comment-form';
+/** Class applied to the comment expander when analysis is being shown */
+const COMMENT_ANALYZE_EXPANDED = 'comment-expanded'
+/** Class applied to the container where comment analysis goes */
+const ANALYSIS_BOX = 'comment-analysis-box';
 
 /** List of comments currently on the page */
 let pageComments = [];
@@ -202,22 +206,28 @@ function expand(comment, expandId, containerId) {
 
   // Toggle styling based on whether comment was expanded before
   if (expanded.has(comment.id)) {
-    removeClass(expandId, 'comment-expanded');
+    removeClass(expandId, COMMENT_ANALYZE_EXPANDED);
     expanded.delete(comment.id);
 
     // Remove comment analysis
     removeElement(analysisId);
   } else {
-    addClass(expandId, 'comment-expanded');
+    addClass(expandId, COMMENT_ANALYZE_EXPANDED);
     expanded.add(comment.id);
 
     // Add comment analysis
-    appendElement(containerId, 'div', '', analysisId, undefined, 'comment-analysis-box');
+    appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
     fetch(`/analyze?id=${comment.id}`, {
       method: 'POST'
     }).then(r => r.json()).then(response => {
-      appendElement(analysisId, 'h2', 'Image Analysis');
-      console.log(response);
+      // Only add image labels if they are retrieved
+      let imageAnalysis = response.imageLabels;
+      if (imageAnalysis.length > 0) {
+        appendElement(analysisId, 'h2', 'Image Analysis');
+        imageAnalysis.forEach(label => {
+          appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
+        });
+      }
     });
   }
 }

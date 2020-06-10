@@ -23,7 +23,9 @@ import com.google.sps.data.Comment;
 import com.google.sps.data.CommentAnalysis;
 import com.google.sps.data.CommentPersistHelper;
 
-/** Analyzes the posted image with GCloud vision */
+/**
+ * Analyzes the posted image with GCloud vision. Will eventually also analyze the comment sentiment
+ */
 @WebServlet("/analyze")
 public class AnalyzeServlet extends HttpServlet {
 

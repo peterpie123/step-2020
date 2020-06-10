@@ -65,7 +65,8 @@ public class CommentAnalysis {
   }
 
   /**
-   * Attaches image analysis, reading from the given comment. Performs no analysis if image is null
+   * Attaches image analysis, reading from the given comment. Performs no analysis if image does not
+   * exist
    */
   public void analyzeImage(Comment comment) throws IOException {
     if (comment.getBlobKey() == null) {
