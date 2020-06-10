@@ -268,29 +268,28 @@ textarea {
 }
 
 .comment-expand {
-  bottom: 0;
-  position: absolute;
-  float: right;
-  right: 2px;
+  width: 100%;
   transition: .3s;
+  border: none;
+  background-color: lightgrey;
+  color: black;
 }
 
 .comment-expand:hover {
   cursor: pointer;
-  color: #b3b3b8;
   transition: .3s;
+  background-color: #b3b3b8;
 }
 
 .comment-expanded {
-  color: #468887;
+  background-color: #468887;
   transition: .3s;
 }
 
 .comment-analysis-box {
   float: left;
   width: 100%;
-  border-top: 1px solid lightgrey;
-  padding-left: 10px;
+  padding: 0 10px;
 }
 
 .comment-body {

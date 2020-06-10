@@ -217,21 +217,35 @@ function expand(comment, expandId, containerId) {
 
     // Add comment analysis
     appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
-    fetch(`/analyze?id=${comment.id}`, {
-      method: 'POST'
-    }).then(r => r.json()).then(response => {
-      appendElement(analysisId, 'p', `Sentiment score: ${response.sentimentScore}`);
+    appendElement(analysisId, 'p', 'This is dummy text for a collapsible comment!');
+    appendElement(analysisId, 'p', comment.text);
 
-      // Only add image labels if they are retrieved
-      let imageAnalysis = response.imageLabels;
-      if (imageAnalysis.length > 0) {
-        appendElement(analysisId, 'h2', 'Image Analysis');
-        imageAnalysis.forEach(label => {
-          appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
-        });
-      }
-    });
+    // fetch(`/analyze?id=${comment.id}`, {
+    //   method: 'POST'
+    // }).then(r => r.json()).then(response => {
+    //   appendElement(analysisId, 'p', `Sentiment score: ${response.sentimentScore}`);
+
+    //   // Only add image labels if they are retrieved
+    //   let imageAnalysis = response.imageLabels;
+    //   if (imageAnalysis.length > 0) {
+    //     appendElement(analysisId, 'h2', 'Image Analysis');
+    //     imageAnalysis.forEach(label => {
+    //       appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
+    //     });
+    //   }
+    // });
   }
+}
+
+/** Adds the ability to expand a comment to show analytics */
+function addAnalytics(comment, containerId, bodyId) {
+  // Add the button that will let the user see extra comment information
+  let expandId = comment.id + '-expand';
+  appendElement(containerId, 'button', '', expandId, () => expand(comment, expandId, containerId));
+  addClass(expandId, 'fas');
+  addClass(expandId, 'fa-caret-square-down');
+  addClass(expandId, 'fa-2x');
+  addClass(expandId, 'comment-expand');
 }
 
 /** Adds the given comment to the page. */
@@ -261,17 +275,12 @@ function addSingleComment(comment) {
 
   }
 
+  // Add the elements that toggle showing analytics
+  addAnalytics(comment, containerId, bodyId);
+
   // Add the element that will toggle deleting this comment
   appendElement(bodyId, 'div', '', undefined, () => prepareDelete(comment.id),
     COMMENT_SELECT_CLASS);
-
-  // Add the element that will let the user see extra comment information
-  let expandId = comment.id + '-expand';
-  appendElement(bodyId, 'i', '', expandId, () => expand(comment, expandId, containerId));
-  addClass(expandId, 'fas');
-  addClass(expandId, 'fa-caret-square-down');
-  addClass(expandId, 'fa-2x');
-  addClass(expandId, 'comment-expand');
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments
