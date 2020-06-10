@@ -36,6 +36,9 @@ import com.google.protobuf.ByteString;
  * will eventually also analyze the sentiment of the comment text
  */
 public class CommentAnalysis {
+  /** Prefix to retrieve images from Blobstore */
+  private static final String GOOGLE_STORAGE_PREFIX = "/gs/";
+
   private List<ImageLabel> imageLabels;
 
   /** Represents a single label for an image */
@@ -62,14 +65,13 @@ public class CommentAnalysis {
   }
 
   /**
-   * Attaches image analysis, reading from the image at the given URL Performs no analysis if
-   * imageUrl is null
+   * Attaches image analysis, reading from the given comment. Performs no analysis if image is null
    */
-  public void analyzeImage(String imageUrl) throws IOException {
-    if (imageUrl == null) {
+  public void analyzeImage(Comment comment) throws IOException {
+    if (comment.getBlobKey() == null) {
       return;
     }
-    byte[] imageBytes = getBlobBytes(imageUrl);
+    byte[] imageBytes = getBlobBytes(comment.getBlobKey());
     List<EntityAnnotation> labels = getImageLabels(imageBytes);
     labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
   }
@@ -83,9 +85,8 @@ public class CommentAnalysis {
   /**
    * Retrieve binary data from blobstore at the given url
    */
-  private static byte[] getBlobBytes(String url) throws IOException {
+  private static byte[] getBlobBytes(BlobKey blobKey) throws IOException {
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-    BlobKey blobKey = blobstoreService.createGsBlobKey(url);
     ByteArrayOutputStream outputBytes = new ByteArrayOutputStream();
 
     int fetchSize = BlobstoreService.MAX_BLOB_FETCH_SIZE;

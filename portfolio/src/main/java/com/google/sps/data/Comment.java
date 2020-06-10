@@ -15,6 +15,7 @@
 package com.google.sps.data;
 
 import javax.annotation.Nullable;
+import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,8 @@ public class Comment implements Comparable<Comment> {
   static final String COMMENT_TIMESTAMP = "timestamp";
   /** URL for the attached picture */
   static final String COMMENT_PICTURE_URL = "picture";
+  /** Key for the attached image */
+  static final String COMMENT_PICTURE_BLOBKEY = "blobkey";
 
   /** Text of the comment */
   private final String text;
@@ -45,20 +48,25 @@ public class Comment implements Comparable<Comment> {
   @Nullable
   /** URL for an attached image. null if there is none */
   private final String imageUrl;
+  @Nullable
+  /** Blobkey for the attached image. null if there is none */
+  private final BlobKey blobKey;
 
   /** Create a comment with a posted date of given milliseconds from the epoch. */
-  public Comment(String text, String name, Key key, long timestamp, @Nullable String imageUrl) {
+  public Comment(String text, String name, Key key, long timestamp, @Nullable String imageUrl,
+      @Nullable BlobKey blobKey) {
     this.text = text;
     this.name = name;
     this.timestamp = timestamp;
     this.key = key;
     this.id = key.getId();
     this.imageUrl = imageUrl;
+    this.blobKey = blobKey;
   }
 
   /** Create a comment with the current time as creation date */
   public Comment(String text, String name, Key key) {
-    this(text, name, key, System.currentTimeMillis(), null);
+    this(text, name, key, System.currentTimeMillis(), null, null);
   }
 
   /** Create a new Comment from an Entity representing a comment */
@@ -66,12 +74,18 @@ public class Comment implements Comparable<Comment> {
     String text = (String) entity.getProperty(COMMENT_TEXT);
     String name = (String) entity.getProperty(COMMENT_NAME);
     long time = (long) entity.getProperty(COMMENT_TIMESTAMP);
-    // URL is optional
+
+    // URL and BlobKey are optional
     String url = null;
     if (entity.hasProperty(COMMENT_PICTURE_URL)) {
       url = (String) entity.getProperty(COMMENT_PICTURE_URL);
     }
-    return new Comment(text, name, entity.getKey(), time, url);
+    BlobKey blobKey = null;
+    if (entity.hasProperty(COMMENT_PICTURE_BLOBKEY)) {
+      blobKey = (BlobKey) entity.getProperty(COMMENT_PICTURE_BLOBKEY);
+    }
+
+    return new Comment(text, name, entity.getKey(), time, url, blobKey);
   }
 
   /**
@@ -105,6 +119,10 @@ public class Comment implements Comparable<Comment> {
 
   public String getImageUrl() {
     return imageUrl;
+  }
+
+  public BlobKey getBlobKey() {
+    return blobKey;
   }
 
   @Override

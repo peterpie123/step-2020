@@ -45,7 +45,7 @@ public class AnalyzeServlet extends HttpServlet {
       long commentId = Long.parseLong(request.getParameter(COMMENT_ID));
       Comment comment = commentStore.getCommentById(commentId);
 
-      analysis.analyzeImage(comment.getImageUrl());
+      analysis.analyzeImage(comment);
       response.getWriter().println(analysis.toString());
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(

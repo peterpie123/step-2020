@@ -78,6 +78,33 @@ public class CommentPersistHelper {
     });
   }
 
+  /**
+   * Returns the BlobKey that points to the file uploaded by the user, or null if the user didn't
+   * upload a file.
+   */
+  private static BlobKey getBlobKey(HttpServletRequest request) {
+    BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
+    List<BlobKey> blobKeys = blobs.get("image");
+
+    // User submitted form without selecting a file, so we can't get a BlobKey. (dev server)
+    if (blobKeys == null || blobKeys.isEmpty()) {
+      return null;
+    }
+
+    // Our form only contains a single file input, so get the first index.
+    BlobKey blobKey = blobKeys.get(0);
+
+    // User submitted form without selecting a file, so the BlobKey is empty. (live server)
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    if (blobInfo.getSize() == 0) {
+      blobstoreService.delete(blobKey);
+      return null;
+    }
+
+    return blobKey;
+  }
+
   /** Adds a new comment from the given HTTP POST */
   public void addComment(HttpServletRequest request) {
     Entity entity = new Entity("Comment");
@@ -85,6 +112,7 @@ public class CommentPersistHelper {
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
     entity.setProperty(Comment.COMMENT_PICTURE_URL, getUploadedFileUrl(request));
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
+    entity.setProperty(Comment.COMMENT_PICTURE_BLOBKEY, getBlobKey(request));
     // Store the comment so it persists
     datastore.put(entity);
 
@@ -100,6 +128,10 @@ public class CommentPersistHelper {
         // Remove the comment from persistent storage and the comments list
         comments.remove(i);
         datastore.delete(comment.getKey());
+
+        // Remove the comment's image, if it exists
+        BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+        blobstoreService.delete(comment.getBlobKey());
         break;
       }
     }
