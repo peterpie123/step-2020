@@ -220,6 +220,8 @@ function expand(comment, expandId, containerId) {
     fetch(`/analyze?id=${comment.id}`, {
       method: 'POST'
     }).then(r => r.json()).then(response => {
+      appendElement(analysisId, 'p', `Sentiment score: ${response.sentimentScore}`);
+
       // Only add image labels if they are retrieved
       let imageAnalysis = response.imageLabels;
       if (imageAnalysis.length > 0) {
@@ -420,6 +422,7 @@ function refreshComments(from = getPaginationStartIndex(), filter = getCommentFi
     }).then(comments => {
       deleteChildren(COMMENTS_CONTAINER);
       pageComments = [];
+      expanded = new Set();
       addComments(comments);
       addPagination();
     });

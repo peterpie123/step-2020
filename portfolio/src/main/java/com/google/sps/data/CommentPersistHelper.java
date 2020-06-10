@@ -97,7 +97,7 @@ public class CommentPersistHelper {
 
     // User submitted form without selecting a file, so the BlobKey is empty. (live server)
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-    if (blobInfo.getSize() == 0) {
+    if (blobInfo == null || blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
       return null;
     }
@@ -131,7 +131,9 @@ public class CommentPersistHelper {
 
         // Remove the comment's image, if it exists
         BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-        blobstoreService.delete(comment.getBlobKey());
+        if (comment.getBlobKey() != null) {
+          blobstoreService.delete(comment.getBlobKey());
+        }
         break;
       }
     }
