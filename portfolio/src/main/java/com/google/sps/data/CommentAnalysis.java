@@ -36,12 +36,9 @@ import com.google.protobuf.ByteString;
  * will eventually also analyze the sentiment of the comment text
  */
 public class CommentAnalysis {
-  /** Prefix to retrieve images from Blobstore */
-  private static final String GOOGLE_STORAGE_PREFIX = "/gs/";
-
   private List<ImageLabel> imageLabels;
 
-  /** Represents a single label for an image */
+  /** Represents a single label for an image. Serves as a convenient wrapper for serialization */
   private static class ImageLabel {
     private final String description;
     private final float score;
