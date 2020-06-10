@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     https://www.apache.org/licenses/LICENSE-2.0
+// https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,9 +32,8 @@ import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
 
 /**
- * Represents analysis with GCloud of a particular comment. Right now just holds
- * image labels, but will eventually also analyze the sentiment of the comment
- * text
+ * Represents analysis with GCloud of a particular comment. Right now just holds image labels, but
+ * will eventually also analyze the sentiment of the comment text
  */
 public class CommentAnalysis {
   private List<ImageLabel> imageLabels;
@@ -57,16 +56,17 @@ public class CommentAnalysis {
       return score;
     }
   }
+
   public CommentAnalysis() {
     imageLabels = new ArrayList<>();
   }
 
   /**
-   * Attaches image analysis, reading from the image at the given URL Performs no
-   * analysis if imageUrl is null
+   * Attaches image analysis, reading from the image at the given URL Performs no analysis if
+   * imageUrl is null
    */
   public void analyzeImage(String imageUrl) throws IOException {
-    if(imageUrl == null) {
+    if (imageUrl == null) {
       return;
     }
     byte[] imageBytes = getBlobBytes(imageUrl);
@@ -93,7 +93,8 @@ public class CommentAnalysis {
     boolean continueReading = true;
     while (continueReading) {
       // End index is inclusive, so we have to subtract 1 to get fetchSize bytes
-      byte[] b = blobstoreService.fetchData(blobKey, currentByteIndex, currentByteIndex + fetchSize - 1);
+      byte[] b =
+          blobstoreService.fetchData(blobKey, currentByteIndex, currentByteIndex + fetchSize - 1);
       outputBytes.write(b);
 
       // If we read fewer bytes than we requested, then we reached the end
@@ -108,15 +109,15 @@ public class CommentAnalysis {
   }
 
   /**
-   * Uses the Google Cloud Vision API to generate a list of labels that apply to
-   * the given image
+   * Uses the Google Cloud Vision API to generate a list of labels that apply to the given image
    */
   private static List<EntityAnnotation> getImageLabels(byte[] imageBytes) throws IOException {
     ByteString byteString = ByteString.copyFrom(imageBytes);
     Image image = Image.newBuilder().setContent(byteString).build();
 
     Feature feature = Feature.newBuilder().setType(Feature.Type.LABEL_DETECTION).build();
-    AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feature).setImage(image).build();
+    AnnotateImageRequest request =
+        AnnotateImageRequest.newBuilder().addFeatures(feature).setImage(image).build();
     List<AnnotateImageRequest> requests = new ArrayList<>();
     requests.add(request);
 

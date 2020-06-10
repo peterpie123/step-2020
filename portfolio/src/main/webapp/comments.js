@@ -212,10 +212,14 @@ function expand(comment, expandId, containerId) {
     expanded.add(comment.id);
 
     // Add comment analysis
-    appendElement(containerId, 'div', `<hr><p>What's up!</p>`, analysisId, undefined, 'comment-analysis-box');
+    appendElement(containerId, 'div', '', analysisId, undefined, 'comment-analysis-box');
+    fetch(`/analyze?id=${comment.id}`, {
+      method: 'POST'
+    }).then(r => r.json()).then(response => {
+      appendElement(analysisId, 'h2', 'Image Analysis');
+      console.log(response);
+    });
   }
-
-  console.log(comment);
 }
 
 /** Adds the given comment to the page. */

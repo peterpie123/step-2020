@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     https://www.apache.org/licenses/LICENSE-2.0
+// https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,19 +15,17 @@
 package com.google.sps.servlets;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
-import java.lang.IllegalArgumentException;
-import com.google.sps.data.CommentPersistHelper;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import com.google.sps.data.CommentPersistHelper;
 
 /**
- * Servlet that returns some example content. TODO: modify this file to handle
- * comments data
+ * Servlet that returns some example content. TODO: modify this file to handle comments data
  */
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
@@ -46,14 +44,14 @@ public class DataServlet extends HttpServlet {
   /** Query string that holds a filter */
   private static final String FILTER_QUERY = "filter";
   /** Default sorting method for retrieving comments */
-  private static final CommentPersistHelper.SortMethod DEFAULT_SORT = CommentPersistHelper.SortMethod.ASCENDING;
+  private static final CommentPersistHelper.SortMethod DEFAULT_SORT =
+      CommentPersistHelper.SortMethod.ASCENDING;
 
   private static CommentPersistHelper commentStore;
 
   @Override
   public void init() {
-    commentStore = new CommentPersistHelper();
-    commentStore.loadComments();
+    commentStore = CommentPersistHelper.getInstance();
   }
 
   @Override
@@ -82,8 +80,8 @@ public class DataServlet extends HttpServlet {
       commentsToSend = DEFAULT_COMMENT_COUNT;
     } catch (NumberFormatException e) {
       // Number of comments is malformed, so complain about it!
-      throw new IllegalArgumentException(
-          request.getParameter(NUMBER_COMMENTS_QUERY) + " is an invalid number of comments. Aborting GET...");
+      throw new IllegalArgumentException(request.getParameter(NUMBER_COMMENTS_QUERY)
+          + " is an invalid number of comments. Aborting GET...");
     }
     try {
       boolean sortAscending = Boolean.parseBoolean(request.getParameter(SORT_ASCENDING_QUERY));
@@ -107,8 +105,8 @@ public class DataServlet extends HttpServlet {
       paginationFrom = 0;
     } catch (NumberFormatException e) {
       // Pagination is malformed, so kick up a fuss
-      throw new IllegalArgumentException(
-          request.getParameter(PAGINATION_START) + " is an invalid pagination start. Aborting GET...");
+      throw new IllegalArgumentException(request.getParameter(PAGINATION_START)
+          + " is an invalid pagination start. Aborting GET...");
     }
 
     try {
@@ -119,7 +117,8 @@ public class DataServlet extends HttpServlet {
     }
 
     response.setContentType("application/json;");
-    response.getWriter().println(commentStore.stringifyComments(commentsToSend, sort, paginationFrom, filter));
+    response.getWriter()
+        .println(commentStore.stringifyComments(commentsToSend, sort, paginationFrom, filter));
     // Send the total number of comments
     response.addIntHeader(TOTAL_NUMBER_HEADER, commentStore.getNumberComments(filter));
   }
@@ -131,7 +130,8 @@ public class DataServlet extends HttpServlet {
   }
 
   @Override
-  public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public void doDelete(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
     String[] toDelete = request.getParameterValues(DELETE_PARAMETER);
     List<Long> deleteIds = new ArrayList<>(toDelete.length);
 
@@ -140,7 +140,8 @@ public class DataServlet extends HttpServlet {
         long id = Long.parseLong(idStr);
         deleteIds.add(id);
       } catch (NumberFormatException e) {
-        throw new IllegalArgumentException(idStr + " is not a valid comment ID. Aborting comment deletion...");
+        throw new IllegalArgumentException(
+            idStr + " is not a valid comment ID. Aborting comment deletion...");
       }
     });
 

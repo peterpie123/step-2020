@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     https://www.apache.org/licenses/LICENSE-2.0
+// https://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,6 @@
 
 package com.google.sps.data;
 
-import java.lang.Comparable;
 import javax.annotation.Nullable;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
@@ -38,8 +37,7 @@ public class Comment implements Comparable<Comment> {
   /** Time comment was created, in milliseconds since epoch (UTC) */
   private final long timestamp;
   /**
-   * The ID of the key associated with the entity that keeps this comment in
-   * persistent storage.
+   * The ID of the key associated with the entity that keeps this comment in persistent storage.
    */
   private final long id;
   /** The key that keeps this comment in persistent storage */
@@ -77,11 +75,11 @@ public class Comment implements Comparable<Comment> {
   }
 
   /**
-   * Returns true if text or name (inclusive) contains the filter string, ignoring
-   * case
+   * Returns true if text or name (inclusive) contains the filter string, ignoring case
    */
   public boolean contains(String filter) {
-    return StringUtils.containsIgnoreCase(text, filter) || StringUtils.containsIgnoreCase(name, filter);
+    return StringUtils.containsIgnoreCase(text, filter)
+        || StringUtils.containsIgnoreCase(name, filter);
   }
 
   public String getText() {
