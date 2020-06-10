@@ -78,14 +78,14 @@ public class CommentAnalysis {
     labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
   }
 
-  /** Attaches text analysis, reding from the given comment. */
+  /** Attaches text analysis, reading from the given comment. */
   public void analyzeText(Comment comment) throws IOException {
-    Document doc = Document.newBuilder().setContent(comment.getText())
-        .setType(Document.Type.PLAIN_TEXT).build();
-    LanguageServiceClient languageService = LanguageServiceClient.create();
-    Sentiment sentiment = languageService.analyzeSentiment(doc).getDocumentSentiment();
-    this.sentimentScore = sentiment.getScore();
-    languageService.close();
+    try (LanguageServiceClient languageServiceClient = LanguageServiceClient.create()) {
+      Document doc = Document.newBuilder().setContent(comment.getText())
+          .setType(Document.Type.PLAIN_TEXT).build();
+      Sentiment sentiment = languageServiceClient.analyzeSentiment(doc).getDocumentSentiment();
+      this.sentimentScore = sentiment.getScore();
+    }
   }
 
   @Override
