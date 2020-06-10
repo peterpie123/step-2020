@@ -209,41 +209,41 @@ function expand(comment, expandId, containerId) {
     removeClass(expandId, COMMENT_ANALYZE_EXPANDED);
     expanded.delete(comment.id);
 
-    // Remove comment analysis
+    // Remove comment analysis, enables a smooth transition
     document.getElementById(analysisId).style.maxHeight = null;
   } else {
     addClass(expandId, COMMENT_ANALYZE_EXPANDED);
 
     expanded.add(comment.id);
 
-    if (documentHasElement(analysisId)) {
-
-    } else {
-      // Add comment analysis
+    // Only retrieve from server if we haven't yet retrieved analysis for this comment
+    if (!documentHasElement(analysisId)) {
+      // Add comment analysis with placeholder while retrieving analysis from the server
       appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
-      appendElement(analysisId, 'p', 'This is dummy text for a collapsible comment!');
-      appendElement(analysisId, 'p', comment.text);
+      appendElement(analysisId, 'p', 'Fetching analysis from server...');
+
+      fetch(`/analyze?id=${comment.id}`, {
+        method: 'POST'
+      }).then(r => r.json()).then(response => {
+        // Delete the placeholder and add in analysis
+        deleteChildren(analysisId);
+
+        appendElement(analysisId, 'p', `Sentiment score: ${response.sentimentScore}`);
+
+        // Only add image labels if they are retrieved
+        let imageAnalysis = response.imageLabels;
+        if (imageAnalysis.length > 0) {
+          appendElement(analysisId, 'h2', 'Image Analysis');
+          imageAnalysis.forEach(label => {
+            appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
+          });
+        }
+      });
     }
 
+    // Enable smooth opening
     let analysisElement = document.getElementById(analysisId)
     analysisElement.style.maxHeight = analysisElement.scrollHeight + 'px';
-
-
-
-    // fetch(`/analyze?id=${comment.id}`, {
-    //   method: 'POST'
-    // }).then(r => r.json()).then(response => {
-    //   appendElement(analysisId, 'p', `Sentiment score: ${response.sentimentScore}`);
-
-    //   // Only add image labels if they are retrieved
-    //   let imageAnalysis = response.imageLabels;
-    //   if (imageAnalysis.length > 0) {
-    //     appendElement(analysisId, 'h2', 'Image Analysis');
-    //     imageAnalysis.forEach(label => {
-    //       appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
-    //     });
-    //   }
-    // });
   }
 }
 
