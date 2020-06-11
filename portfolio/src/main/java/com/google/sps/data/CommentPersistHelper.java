@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import com.google.appengine.api.blobstore.BlobInfo;
 import com.google.appengine.api.blobstore.BlobInfoFactory;
@@ -41,7 +42,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 
 /**
- * Keeps track of persisted comments with ability to add/remove comments. This is a singleton
+ * Keeps track of persisted comments with ability to add/remove comments. This is a singleton.
  */
 public class CommentPersistHelper {
   public enum SortMethod {
@@ -59,7 +60,7 @@ public class CommentPersistHelper {
   }
 
   /**
-   * Returns the currently running instance of CommentPersistHelper. Comments are pre-loaded
+   * Returns the currently running instance of CommentPersistHelper. Comments are pre-loaded.
    */
   public static CommentPersistHelper getInstance() {
     if (instance == null) {
@@ -69,7 +70,7 @@ public class CommentPersistHelper {
     return instance;
   }
 
-  /** Loads comments from persist storage and adds to the comments list */
+  /** Loads comments from persist storage and adds to the comments list. */
   private void loadComments() {
     Query query = new Query("Comment").addSort(Comment.COMMENT_TIMESTAMP, SortDirection.DESCENDING);
     PreparedQuery results = datastore.prepare(query);
@@ -79,17 +80,16 @@ public class CommentPersistHelper {
   }
 
   /**
-   * Returns the BlobKey that points to the file uploaded by the user, or null if the user didn't
-   * upload a file.
+   * Returns the BlobKey that points to the file uploaded by the user.
    */
-  private static BlobKey getBlobKey(HttpServletRequest request) {
+  private static Optional<BlobKey> getBlobKey(HttpServletRequest request) {
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");
 
     // User submitted form without selecting a file, so we can't get a BlobKey. (dev server)
     if (blobKeys == null || blobKeys.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     // Our form only contains a single file input, so get the first index.
@@ -99,20 +99,22 @@ public class CommentPersistHelper {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     if (blobInfo == null || blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      return null;
+      return Optional.empty();
     }
 
-    return blobKey;
+    return Optional.of(blobKey);
   }
 
-  /** Adds a new comment from the given HTTP POST */
+  /** Adds a new comment from the given HTTP POST. */
   public void addComment(HttpServletRequest request) {
     Entity entity = new Entity("Comment");
     entity.setProperty(Comment.COMMENT_TEXT, request.getParameter(Comment.COMMENT_TEXT));
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
-    entity.setProperty(Comment.COMMENT_PICTURE_URL, getUploadedFileUrl(request));
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
-    entity.setProperty(Comment.COMMENT_PICTURE_BLOBKEY, getBlobKey(request));
+
+    getUploadedFileUrl(request).ifPresent(url -> entity.setProperty(Comment.COMMENT_PICTURE_URL, url));
+    getBlobKey(request).ifPresent(blobKey -> entity.setProperty(Comment.COMMENT_PICTURE_BLOBKEY, blobKey));
+    
     // Store the comment so it persists
     datastore.put(entity);
 
@@ -130,28 +132,28 @@ public class CommentPersistHelper {
         datastore.delete(comment.getKey());
 
         // Remove the comment's image, if it exists
-        BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-        if (comment.getBlobKey() != null) {
-          blobstoreService.delete(comment.getBlobKey());
-        }
+        comment.getBlobKey().ifPresent(blobKey -> {
+          BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+          blobstoreService.delete(blobKey);
+        });
         break;
       }
     }
   }
 
-  /** Returns the given comment, found by its ID. Null if it isn't found */
-  public Comment getCommentById(long id) {
+  /** Returns the given comment, found by its ID. */
+  public Optional<Comment> getCommentById(long id) {
     try {
-      return comments.stream().filter(c -> c.getId() == id).findFirst().get();
+      return Optional.of(comments.stream().filter(c -> c.getId() == id).findFirst().get());
     } catch (NoSuchElementException e) {
-      return null;
+      return Optional.empty();
     }
   }
 
   /**
-   * Returns a URL that points to the uploaded file, or null if the user didn't upload a file.
+   * Returns a URL that points to the uploaded file.
    */
-  private String getUploadedFileUrl(HttpServletRequest request) {
+  private Optional<String> getUploadedFileUrl(HttpServletRequest request) {
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");
@@ -159,7 +161,7 @@ public class CommentPersistHelper {
     // User submitted form without selecting a file, so we can't get a URL.
     // (dev server)
     if (blobKeys == null || blobKeys.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     // Our form only contains a single file input, so get the first index.
@@ -170,7 +172,7 @@ public class CommentPersistHelper {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      return null;
+      return Optional.empty();
     }
 
     // We could check the validity of the file here, e.g.
@@ -186,14 +188,14 @@ public class CommentPersistHelper {
     // contains a host.
     try {
       URL url = new URL(imagesService.getServingUrl(options));
-      return url.getPath();
+      return Optional.of(url.getPath());
     } catch (MalformedURLException e) {
       // Return normally if servingUrl is already a relative path
-      return imagesService.getServingUrl(options);
+      return Optional.of(imagesService.getServingUrl(options));
     }
   }
 
-  /** Returns only comments with either name or content containing filter */
+  /** Returns only comments with either name or content containing filter. */
   private List<Comment> filterList(String filter) {
     if (filter == null) {
       // Don't filter
@@ -205,7 +207,7 @@ public class CommentPersistHelper {
   }
 
   /**
-   * Stringifies the comments in the desired order, including pagination and filtering
+   * Stringifies the comments in the desired order, including pagination and filtering.
    */
   public String stringifyComments(int numberComments, SortMethod sort, int paginationFrom,
       String filter) {
@@ -240,12 +242,12 @@ public class CommentPersistHelper {
     return gson.toJson(send);
   }
 
-  /** Returns the total number of comments that are stored */
+  /** Returns the total number of comments that are stored. */
   public int getNumberComments() {
     return comments.size();
   }
 
-  /** Returns the total number of comments that correspond to the given filter */
+  /** Returns the total number of comments that correspond to the given filter. */
   public int getNumberComments(String filter) {
     return filterList(filter).size();
   }

@@ -14,6 +14,7 @@
 
 package com.google.sps.servlets;
 
+import java.util.Optional;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,12 +25,12 @@ import com.google.sps.data.CommentAnalysis;
 import com.google.sps.data.CommentPersistHelper;
 
 /**
- * Analyzes the posted image with GCloud vision. Will eventually also analyze the comment sentiment
+ * Analyzes the posted image with GCloud vision. Will eventually also analyze the comment sentiment.
  */
 @WebServlet("/analyze")
 public class AnalyzeServlet extends HttpServlet {
 
-  /** Query string for the comment to be analyzed */
+  /** Query string for the comment to be analyzed. */
   private static final String COMMENT_ID = "id";
 
   private static CommentPersistHelper commentStore;
@@ -45,16 +46,16 @@ public class AnalyzeServlet extends HttpServlet {
 
     try {
       long commentId = Long.parseLong(request.getParameter(COMMENT_ID));
-      Comment comment = commentStore.getCommentById(commentId);
-
-      analysis.analyzeImage(comment);
-      analysis.analyzeText(comment);
-      response.getWriter().println(analysis.toString());
+      Optional<Comment> comment = commentStore.getCommentById(commentId);
+      // Avoid using ifPresent since lambdas don't play nice with exceptions
+      if(comment.isPresent()) {
+        analysis.analyzeImage(comment.get());
+        analysis.analyzeText(comment.get());
+        response.getWriter().println(analysis.toString());
+      }
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(
           request.getParameter(COMMENT_ID) + " is an invalid Comment ID. Aborting analysis...", e);
-    } catch (NullPointerException e) {
-      throw new IllegalArgumentException("Unable to analyze image. Aborting...", e);
     }
   }
 }
