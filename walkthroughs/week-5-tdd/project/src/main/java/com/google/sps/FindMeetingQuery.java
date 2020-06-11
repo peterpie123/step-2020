@@ -28,9 +28,8 @@ public final class FindMeetingQuery {
 
   /** Have end time for meetings be exclusive */
   private static final boolean TIME_EXCLUSIVE = false;
-  /** Have end time for meetings be inclusive */
-  private static final boolean TIME_INCLUSIVE = true;
 
+  /** Construct a possible meeting times based on the given events and attendees */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
     List<TimeRange> possibleTimes = new ArrayList<>();
     // Starting out, any time is possible
@@ -42,15 +41,14 @@ public final class FindMeetingQuery {
     // Look for collisions with other meetings
     events.stream().forEach(event -> {
       if (isAttendeeOverlap(requiredAttendees, optionalAttendees, event) == OverlapType.REQUIRED) {
-        // We can't use this meeting time
+        // We can't use this meeting time since at least a required attendee is at another meeting
         subtractTime(possibleTimes, event.getWhen());
       }
     });
 
-    // Remove any times that are too small and sort in ascending order
+    // Remove any times that are too small and then sort in ascending order
     possibleTimes.removeIf(time -> time.duration() < request.getDuration());
     Collections.sort(possibleTimes, TimeRange.ORDER_BY_START);
-
     return possibleTimes;
   }
 
@@ -74,7 +72,7 @@ public final class FindMeetingQuery {
     // Remove times that are within the range (inclusive) of toSubtract
     times.removeIf(time -> toSubtract.contains(time));
 
-    // Eke out any times that have the offending range within them
+    // Eke out any times that have the offending time range within them
     List<TimeRange> containTime = times.stream()
         .filter(time -> time.contains(toSubtract.start()) || time.contains(toSubtract.end()))
         .collect(Collectors.toList());
@@ -84,13 +82,11 @@ public final class FindMeetingQuery {
     // Break up times that include toSubtract
     containTime.forEach(removedTime -> {
       if (removedTime.start() == toSubtract.start()) {
-        // Only add the time after toSubtract
-        times.add(TimeRange.fromStartDuration(toSubtract.end(),
-            removedTime.duration() - toSubtract.duration()));
+        // Add the time after toSubtract
+        times.add(TimeRange.fromStartEnd(toSubtract.end(), removedTime.end(), TIME_EXCLUSIVE));
       } else if (removedTime.end() == toSubtract.end()) {
-        // Only add the time before toSubtract
-        times.add(TimeRange.fromStartDuration(removedTime.start(),
-            removedTime.duration() - toSubtract.duration()));
+        // Add the time before toSubtract
+        times.add(TimeRange.fromStartEnd(removedTime.start(), toSubtract.start(), TIME_EXCLUSIVE));
       } else {
         // Split the available time in two
         times.add(TimeRange.fromStartEnd(removedTime.start(), toSubtract.start(), TIME_EXCLUSIVE));
