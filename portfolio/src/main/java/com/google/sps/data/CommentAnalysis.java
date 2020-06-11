@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class CommentAnalysis {
   private List<ImageLabel> imageLabels;
+  /** The sentiment of the comment, ranging from -1 (very negative) to 1 (very positive) */
   private float sentimentScore;
 
   /** Represents a single label for an image. Serves as a convenient wrapper for serialization. */
