@@ -17,9 +17,7 @@ package com.google.sps;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class FindMeetingQuery {
@@ -77,8 +75,9 @@ public final class FindMeetingQuery {
     times.removeIf(time -> toSubtract.contains(time));
 
     // Eke out any times that have the offending range within them
-    List<TimeRange> containTime =
-        times.stream().filter(time -> time.contains(toSubtract)).collect(Collectors.toList());
+    List<TimeRange> containTime = times.stream()
+        .filter(time -> time.contains(toSubtract.start()) || time.contains(toSubtract.end()))
+        .collect(Collectors.toList());
     // Remove these from available times
     times.removeAll(containTime);
 
