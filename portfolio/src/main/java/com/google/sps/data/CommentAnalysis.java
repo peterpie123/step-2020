@@ -21,6 +21,9 @@ import java.util.List;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.cloud.language.v1.Document;
+import com.google.cloud.language.v1.LanguageServiceClient;
+import com.google.cloud.language.v1.Sentiment;
 import com.google.cloud.vision.v1.AnnotateImageRequest;
 import com.google.cloud.vision.v1.AnnotateImageResponse;
 import com.google.cloud.vision.v1.BatchAnnotateImagesResponse;
@@ -38,6 +41,8 @@ import com.google.common.collect.ImmutableList;
  */
 public class CommentAnalysis {
   private List<ImageLabel> imageLabels;
+  /** The sentiment of the comment, ranging from -1 (very negative) to 1 (very positive) */
+  private float sentimentScore;
 
   /** Represents a single label for an image. Serves as a convenient wrapper for serialization. */
   private static class ImageLabel {
@@ -77,6 +82,16 @@ public class CommentAnalysis {
     comment.getBlobKey().ifPresent(blobKey -> {
       
     });
+  }
+
+  /** Attaches text analysis, reading from the given comment. */
+  public void analyzeText(Comment comment) throws IOException {
+    try (LanguageServiceClient languageServiceClient = LanguageServiceClient.create()) {
+      Document doc = Document.newBuilder().setContent(comment.getText())
+          .setType(Document.Type.PLAIN_TEXT).build();
+      Sentiment sentiment = languageServiceClient.analyzeSentiment(doc).getDocumentSentiment();
+      this.sentimentScore = sentiment.getScore();
+    }
   }
 
   @Override

@@ -203,7 +203,6 @@ textarea {
   border: 1px solid lightgrey;
   border-radius: 5px;
   margin-top: 5px;
-  padding-left: 10px;
   overflow: auto;
   position: relative;
 }
@@ -269,32 +268,37 @@ textarea {
 }
 
 .comment-expand {
-  bottom: 0;
-  position: absolute;
-  float: right;
-  right: 2px;
+  width: 100%;
   transition: .3s;
+  border: none;
+  background-color: lightgrey;
+  color: black;
 }
 
 .comment-expand:hover {
   cursor: pointer;
-  color: #b3b3b8;
   transition: .3s;
+  background-color: #b3b3b8;
 }
 
 .comment-expanded {
-  color: #468887;
+  background-color: #468887;
   transition: .3s;
 }
 
 .comment-analysis-box {
   float: left;
-  width: 95%;
+  width: 100%;
+  padding: 0 10px;
+  transition: max-height 0.2s ease-out;
+  max-height: 0;
+  overflow: hidden;
 }
 
 .comment-body {
   display: flex;
   overflow: auto;
+  padding-left: 10px;
 }
 
 .rotate-animated {

@@ -80,17 +80,16 @@ public class CommentPersistHelper {
   }
 
   /**
-   * Returns the BlobKey that points to the file uploaded by the user, or null if the user didn't
-   * upload a file.
+   * Returns the BlobKey that points to the file uploaded by the user.
    */
-  private static BlobKey getBlobKey(HttpServletRequest request) {
+  private static Optional<BlobKey> getBlobKey(HttpServletRequest request) {
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");
 
     // User submitted form without selecting a file, so we can't get a BlobKey. (dev server)
     if (blobKeys == null || blobKeys.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     // Our form only contains a single file input, so get the first index.
@@ -98,12 +97,12 @@ public class CommentPersistHelper {
 
     // User submitted form without selecting a file, so the BlobKey is empty. (live server)
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-    if (blobInfo.getSize() == 0) {
+    if (blobInfo == null || blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      return null;
+      return Optional.empty();
     }
 
-    return blobKey;
+    return Optional.of(blobKey);
   }
 
   /** Adds a new comment from the given HTTP POST. */
@@ -111,9 +110,11 @@ public class CommentPersistHelper {
     Entity entity = new Entity("Comment");
     entity.setProperty(Comment.COMMENT_TEXT, request.getParameter(Comment.COMMENT_TEXT));
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
-    entity.setProperty(Comment.COMMENT_PICTURE_URL, getUploadedFileUrl(request));
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
-    entity.setProperty(Comment.COMMENT_PICTURE_BLOBKEY, getBlobKey(request));
+
+    getUploadedFileUrl(request).ifPresent(url -> entity.setProperty(Comment.COMMENT_PICTURE_URL, url));
+    getBlobKey(request).ifPresent(blobKey -> entity.setProperty(Comment.COMMENT_PICTURE_BLOBKEY, blobKey));
+    
     // Store the comment so it persists
     datastore.put(entity);
 
@@ -150,9 +151,9 @@ public class CommentPersistHelper {
   }
 
   /**
-   * Returns a URL that points to the uploaded file, or null if the user didn't upload a file.
+   * Returns a URL that points to the uploaded file.
    */
-  private String getUploadedFileUrl(HttpServletRequest request) {
+  private Optional<String> getUploadedFileUrl(HttpServletRequest request) {
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");
@@ -160,7 +161,7 @@ public class CommentPersistHelper {
     // User submitted form without selecting a file, so we can't get a URL.
     // (dev server)
     if (blobKeys == null || blobKeys.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     // Our form only contains a single file input, so get the first index.
@@ -171,7 +172,7 @@ public class CommentPersistHelper {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      return null;
+      return Optional.empty();
     }
 
     // We could check the validity of the file here, e.g.
@@ -187,10 +188,10 @@ public class CommentPersistHelper {
     // contains a host.
     try {
       URL url = new URL(imagesService.getServingUrl(options));
-      return url.getPath();
+      return Optional.of(url.getPath());
     } catch (MalformedURLException e) {
       // Return normally if servingUrl is already a relative path
-      return imagesService.getServingUrl(options);
+      return Optional.of(imagesService.getServingUrl(options));
     }
   }
 

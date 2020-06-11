@@ -50,6 +50,7 @@ public class AnalyzeServlet extends HttpServlet {
       // Avoid using ifPresent since lambdas don't play nice with exceptions
       if(comment.isPresent()) {
         analysis.analyzeImage(comment.get());
+        analysis.analyzeText(comment.get());
         response.getWriter().println(analysis.toString());
       }
     } catch (NumberFormatException e) {

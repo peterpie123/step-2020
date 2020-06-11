@@ -209,27 +209,53 @@ function expand(comment, expandId, containerId) {
     removeClass(expandId, COMMENT_ANALYZE_EXPANDED);
     expanded.delete(comment.id);
 
-    // Remove comment analysis
-    removeElement(analysisId);
+    // Remove comment analysis, enables a smooth transition
+    document.getElementById(analysisId).style.maxHeight = null;
   } else {
     addClass(expandId, COMMENT_ANALYZE_EXPANDED);
+
     expanded.add(comment.id);
 
-    // Add comment analysis
-    appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
-    fetch(`/analyze?id=${comment.id}`, {
-      method: 'POST'
-    }).then(r => r.json()).then(response => {
-      // Only add image labels if they are retrieved
-      let imageAnalysis = response.imageLabels;
-      if (imageAnalysis.length > 0) {
-        appendElement(analysisId, 'h2', 'Image Analysis');
-        imageAnalysis.forEach(label => {
-          appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
-        });
-      }
-    });
+    // Only retrieve from server if we haven't yet retrieved analysis for this comment
+    if (!documentHasElement(analysisId)) {
+      // Add comment analysis with placeholder while retrieving analysis from the server
+      appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
+      appendElement(analysisId, 'p', 'Fetching analysis from server...');
+
+      fetch(`/analyze?id=${comment.id}`, {
+        method: 'POST'
+      }).then(r => r.json()).then(response => {
+        // Delete the placeholder and add in analysis
+        deleteChildren(analysisId);
+
+        appendElement(analysisId, 'p', `Sentiment score: ${response.sentimentScore}`);
+
+        // Only add image labels if they are retrieved
+        let imageAnalysis = response.imageLabels;
+        if (imageAnalysis.length > 0) {
+          appendElement(analysisId, 'h2', 'Image Analysis');
+          imageAnalysis.forEach(label => {
+            appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
+          });
+        }
+      });
+    }
+
+    // Enable smooth opening
+    let analysisElement = document.getElementById(analysisId)
+    analysisElement.style.maxHeight = analysisElement.scrollHeight + 'px';
   }
+}
+
+/** Adds the ability to expand a comment to show analytics */
+function addAnalytics(comment, containerId, bodyId) {
+  // Add the button that will let the user see extra comment information
+  let expandId = comment.id + '-expand';
+  appendElement(containerId, 'button', '', expandId, () => expand(comment, expandId, containerId));
+  addClass(expandId, 'fas');
+  addClass(expandId, 'fa-caret-square-down');
+  addClass(expandId, 'fa-2x');
+  addClass(expandId, 'comment-expand');
 }
 
 /** Adds the given comment to the page. */
@@ -259,17 +285,12 @@ function addSingleComment(comment) {
 
   }
 
+  // Add the elements that toggle showing analytics
+  addAnalytics(comment, containerId, bodyId);
+
   // Add the element that will toggle deleting this comment
   appendElement(bodyId, 'div', '', undefined, () => prepareDelete(comment.id),
     COMMENT_SELECT_CLASS);
-
-  // Add the element that will let the user see extra comment information
-  let expandId = comment.id + '-expand';
-  appendElement(bodyId, 'i', '', expandId, () => expand(comment, expandId, containerId));
-  addClass(expandId, 'fas');
-  addClass(expandId, 'fa-caret-square-down');
-  addClass(expandId, 'fa-2x');
-  addClass(expandId, 'comment-expand');
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments
@@ -420,6 +441,7 @@ function refreshComments(from = getPaginationStartIndex(), filter = getCommentFi
     }).then(comments => {
       deleteChildren(COMMENTS_CONTAINER);
       pageComments = [];
+      expanded = new Set();
       addComments(comments);
       addPagination();
     });
