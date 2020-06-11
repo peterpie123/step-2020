@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 
-/** Servlet that retrieves image upload URL and uploads images */
+/** Servlet that retrieves image upload URL and uploads images. */
 @WebServlet("/image")
 public class ImageServlet extends HttpServlet {
   @Override

@@ -30,17 +30,19 @@ import com.google.cloud.vision.v1.Image;
 import com.google.cloud.vision.v1.ImageAnnotatorClient;
 import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Represents analysis with GCloud of a particular comment. Right now just holds image labels, but
- * will eventually also analyze the sentiment of the comment text
+ * will eventually also analyze the sentiment of the comment text.
  */
 public class CommentAnalysis {
   private List<ImageLabel> imageLabels;
 
-  /** Represents a single label for an image. Serves as a convenient wrapper for serialization */
+  /** Represents a single label for an image. Serves as a convenient wrapper for serialization. */
   private static class ImageLabel {
     private final String description;
+    /** How closely the AI believes this label applies. Range: [0,1].  */
     private final float score;
 
     public ImageLabel(EntityAnnotation annotation) {
@@ -63,15 +65,18 @@ public class CommentAnalysis {
 
   /**
    * Attaches image analysis, reading from the given comment. Performs no analysis if image does not
-   * exist
+   * exist.
    */
   public void analyzeImage(Comment comment) throws IOException {
-    if (comment.getBlobKey() == null) {
-      return;
+    // Don't use ifPresent since exceptions don't behave well with lambda expressions
+    if(comment.getBlobKey().isPresent()) {
+      byte[] imageBytes = getBlobBytes(comment.getBlobKey().get());
+      List<EntityAnnotation> labels = getImageLabels(imageBytes);
+      labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
     }
-    byte[] imageBytes = getBlobBytes(comment.getBlobKey());
-    List<EntityAnnotation> labels = getImageLabels(imageBytes);
-    labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
+    comment.getBlobKey().ifPresent(blobKey -> {
+      
+    });
   }
 
   @Override
@@ -81,7 +86,7 @@ public class CommentAnalysis {
   }
 
   /**
-   * Retrieve binary data from blobstore at the given url
+   * Retrieve binary data from blobstore at the given url.
    */
   private static byte[] getBlobBytes(BlobKey blobKey) throws IOException {
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
@@ -108,7 +113,7 @@ public class CommentAnalysis {
   }
 
   /**
-   * Uses the Google Cloud Vision API to generate a list of labels that apply to the given image
+   * Uses the Google Cloud Vision API to generate a list of labels that apply to the given image.
    */
   private static List<EntityAnnotation> getImageLabels(byte[] imageBytes) throws IOException {
     ByteString byteString = ByteString.copyFrom(imageBytes);
@@ -132,6 +137,7 @@ public class CommentAnalysis {
       return null;
     }
 
-    return imageResponse.getLabelAnnotationsList();
+    // Convert to immutable list and return
+    return ImmutableList.copyOf(imageResponse.getLabelAnnotationsList());
   }
 }
