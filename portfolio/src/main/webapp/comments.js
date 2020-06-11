@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Import utlity functions, unfortunately cannot be line-wrapped
-import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass, setId, timePassed } from './script.js';
+import { documentHasElement, appendElement, deleteChildren, retrieveProperty, removeClass, addClass, setId, timePassed, removeElement } from './script.js';
 
 /** ID of the comments container */
 const COMMENTS_CONTAINER = 'comments-container';
@@ -105,17 +105,23 @@ const IMAGE_ATTACHMENT_BUTTON = 'comment-attachment';
 const IMAGE_SERVLET_URL = '/image';
 /** ID of the comment submission form */
 const COMMENT_FORM = 'comment-form';
+/** Class applied to the comment expander when analysis is being shown */
+const COMMENT_ANALYZE_EXPANDED = 'comment-expanded'
+/** Class applied to the container where comment analysis goes */
+const ANALYSIS_BOX = 'comment-analysis-box';
 
 /** List of comments currently on the page */
 let pageComments = [];
 /** How the comments are currently sorted */
 let commentsSort = COMMENTS_SORT_NEWEST;
-/** Comments currently selected for deletion */
+/** IDs of the comments currently selected for deletion */
 let commentsToDelete = new Set();
 /** The total number of comments on the server. Used for pagination */
 let totalNumComments;
 /** The current page of comments that's on */
 let currCommentPage = 1;
+/** IDs of the comments that are currently expanded */
+let expanded = new Set();
 
 // Perform necessary setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -194,6 +200,38 @@ function submitComment(formData) {
   });
 }
 
+/** Shows GCloud analysis for the given comment */
+function expand(comment, expandId, containerId) {
+  let analysisId = comment.id + '-analysis';
+
+  // Toggle styling based on whether comment was expanded before
+  if (expanded.has(comment.id)) {
+    removeClass(expandId, COMMENT_ANALYZE_EXPANDED);
+    expanded.delete(comment.id);
+
+    // Remove comment analysis
+    removeElement(analysisId);
+  } else {
+    addClass(expandId, COMMENT_ANALYZE_EXPANDED);
+    expanded.add(comment.id);
+
+    // Add comment analysis
+    appendElement(containerId, 'div', '', analysisId, undefined, ANALYSIS_BOX);
+    fetch(`/analyze?id=${comment.id}`, {
+      method: 'POST'
+    }).then(r => r.json()).then(response => {
+      // Only add image labels if they are retrieved
+      let imageAnalysis = response.imageLabels;
+      if (imageAnalysis.length > 0) {
+        appendElement(analysisId, 'h2', 'Image Analysis');
+        imageAnalysis.forEach(label => {
+          appendElement(analysisId, 'p', `${label.description}: ${label.score}`);
+        });
+      }
+    });
+  }
+}
+
 /** Adds the given comment to the page. */
 function addSingleComment(comment) {
   let containerId = COMMENT_CONTAINER_PREFIX + comment.id;
@@ -204,21 +242,34 @@ function addSingleComment(comment) {
   let date = new Date(0);
   date.setUTCMilliseconds(comment.timestamp);
 
+  // ID for the container that houses information and the toggles
+  let bodyId = containerId + '-body';
+  appendElement(containerId, 'div', '', bodyId, undefined, 'comment-body');
+
   // ID for the container which houses the information for a comment
   let contentId = containerId + '-content';
-  appendElement(containerId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
+  appendElement(bodyId, 'div', '', contentId, undefined, COMMENT_TEXT_CLASS);
   // Add the name, time, and content
   appendElement(contentId, 'p', `<b>${comment.name}</b>\t` +
     `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
   appendElement(contentId, 'p', comment.text);
 
-  if (comment.imageUrl) {
-    appendElement(contentId, 'span', `<img src="${comment.imageUrl}"/>`)
+  if (comment.imageUrl.value) {
+    appendElement(contentId, 'span', `<img src="${comment.imageUrl.value}"/>`)
+
   }
 
   // Add the element that will toggle deleting this comment
-  appendElement(containerId, 'div', '', undefined, () => prepareDelete(comment.id),
+  appendElement(bodyId, 'div', '', undefined, () => prepareDelete(comment.id),
     COMMENT_SELECT_CLASS);
+
+  // Add the element that will let the user see extra comment information
+  let expandId = comment.id + '-expand';
+  appendElement(bodyId, 'i', '', expandId, () => expand(comment, expandId, containerId));
+  addClass(expandId, 'fas');
+  addClass(expandId, 'fa-caret-square-down');
+  addClass(expandId, 'fa-2x');
+  addClass(expandId, 'comment-expand');
 }
 
 /**Adds the given list of comments to the page, and only adds them to the pageComments
