@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import com.google.appengine.api.blobstore.BlobInfo;
 import com.google.appengine.api.blobstore.BlobInfoFactory;
@@ -139,12 +140,12 @@ public class CommentPersistHelper {
     }
   }
 
-  /** Returns the given comment, found by its ID. Null if it isn't found. */
-  public Comment getCommentById(long id) {
+  /** Returns the given comment, found by its ID. */
+  public Optional<Comment> getCommentById(long id) {
     try {
-      return comments.stream().filter(c -> c.getId() == id).findFirst().get();
+      return Optional.of(comments.stream().filter(c -> c.getId() == id).findFirst().get());
     } catch (NoSuchElementException e) {
-      return null;
+      return Optional.empty();
     }
   }
 
