@@ -25,25 +25,25 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.sps.data.CommentPersistHelper;
 
 /**
- * Servlet that returns some example content. TODO: modify this file to handle comments data
+ * Servlet that returns some example content. TODO: modify this file to handle comments data.
  */
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
-  /** Default number of comments to send */
+  /** Default number of comments to send. */
   private static final int DEFAULT_COMMENT_COUNT = 5;
-  /** Query string which contains the number of comments to send */
+  /** Query string which contains the number of comments to send. */
   private static final String NUMBER_COMMENTS_QUERY = "num-comments";
-  /** Header containing the total number of comments stored */
+  /** Header containing the total number of comments stored. */
   private static final String TOTAL_NUMBER_HEADER = "num-comments";
-  /** Query string that indicates whether to sort ascending or descending */
+  /** Query string that indicates whether to sort ascending or descending. */
   private static final String SORT_ASCENDING_QUERY = "sort-ascending";
-  /** Parameter which contains the ID's of the comments to delete */
+  /** Parameter which contains the ID's of the comments to delete. */
   private static final String DELETE_PARAMETER = "delete";
-  /** Query string that tells which comment to start at */
+  /** Query string that tells which comment to start at. */
   private static final String PAGINATION_START = "pagination";
-  /** Query string that holds a filter */
+  /** Query string that holds a filter. */
   private static final String FILTER_QUERY = "filter";
-  /** Default sorting method for retrieving comments */
+  /** Default sorting method for retrieving comments. */
   private static final CommentPersistHelper.SortMethod DEFAULT_SORT =
       CommentPersistHelper.SortMethod.ASCENDING;
 

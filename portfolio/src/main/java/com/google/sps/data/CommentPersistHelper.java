@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import com.google.appengine.api.blobstore.BlobInfo;
 import com.google.appengine.api.blobstore.BlobInfoFactory;
@@ -41,7 +42,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 
 /**
- * Keeps track of persisted comments with ability to add/remove comments. This is a singleton
+ * Keeps track of persisted comments with ability to add/remove comments. This is a singleton.
  */
 public class CommentPersistHelper {
   public enum SortMethod {
@@ -59,7 +60,7 @@ public class CommentPersistHelper {
   }
 
   /**
-   * Returns the currently running instance of CommentPersistHelper. Comments are pre-loaded
+   * Returns the currently running instance of CommentPersistHelper. Comments are pre-loaded.
    */
   public static CommentPersistHelper getInstance() {
     if (instance == null) {
@@ -69,7 +70,7 @@ public class CommentPersistHelper {
     return instance;
   }
 
-  /** Loads comments from persist storage and adds to the comments list */
+  /** Loads comments from persist storage and adds to the comments list. */
   private void loadComments() {
     Query query = new Query("Comment").addSort(Comment.COMMENT_TIMESTAMP, SortDirection.DESCENDING);
     PreparedQuery results = datastore.prepare(query);
@@ -105,7 +106,7 @@ public class CommentPersistHelper {
     return blobKey;
   }
 
-  /** Adds a new comment from the given HTTP POST */
+  /** Adds a new comment from the given HTTP POST. */
   public void addComment(HttpServletRequest request) {
     Entity entity = new Entity("Comment");
     entity.setProperty(Comment.COMMENT_TEXT, request.getParameter(Comment.COMMENT_TEXT));
@@ -130,21 +131,21 @@ public class CommentPersistHelper {
         datastore.delete(comment.getKey());
 
         // Remove the comment's image, if it exists
-        BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-        if (comment.getBlobKey() != null) {
-          blobstoreService.delete(comment.getBlobKey());
-        }
+        comment.getBlobKey().ifPresent(blobKey -> {
+          BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+          blobstoreService.delete(blobKey);
+        });
         break;
       }
     }
   }
 
-  /** Returns the given comment, found by its ID. Null if it isn't found */
-  public Comment getCommentById(long id) {
+  /** Returns the given comment, found by its ID. */
+  public Optional<Comment> getCommentById(long id) {
     try {
-      return comments.stream().filter(c -> c.getId() == id).findFirst().get();
+      return Optional.of(comments.stream().filter(c -> c.getId() == id).findFirst().get());
     } catch (NoSuchElementException e) {
-      return null;
+      return Optional.empty();
     }
   }
 
@@ -193,7 +194,7 @@ public class CommentPersistHelper {
     }
   }
 
-  /** Returns only comments with either name or content containing filter */
+  /** Returns only comments with either name or content containing filter. */
   private List<Comment> filterList(String filter) {
     if (filter == null) {
       // Don't filter
@@ -205,7 +206,7 @@ public class CommentPersistHelper {
   }
 
   /**
-   * Stringifies the comments in the desired order, including pagination and filtering
+   * Stringifies the comments in the desired order, including pagination and filtering.
    */
   public String stringifyComments(int numberComments, SortMethod sort, int paginationFrom,
       String filter) {
@@ -240,12 +241,12 @@ public class CommentPersistHelper {
     return gson.toJson(send);
   }
 
-  /** Returns the total number of comments that are stored */
+  /** Returns the total number of comments that are stored. */
   public int getNumberComments() {
     return comments.size();
   }
 
-  /** Returns the total number of comments that correspond to the given filter */
+  /** Returns the total number of comments that correspond to the given filter. */
   public int getNumberComments(String filter) {
     return filterList(filter).size();
   }

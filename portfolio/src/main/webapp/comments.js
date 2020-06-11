@@ -280,8 +280,8 @@ function addSingleComment(comment) {
     `<span title="${date.toLocaleString()}">${timePassed(date)}</span>`);
   appendElement(contentId, 'p', comment.text);
 
-  if (comment.imageUrl) {
-    appendElement(contentId, 'span', `<img src="${comment.imageUrl}"/>`)
+  if (comment.imageUrl.value) {
+    appendElement(contentId, 'span', `<img src="${comment.imageUrl.value}"/>`)
 
   }
 
