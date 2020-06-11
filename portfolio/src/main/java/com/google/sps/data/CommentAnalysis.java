@@ -134,9 +134,10 @@ public class CommentAnalysis {
     List<AnnotateImageRequest> requests = new ArrayList<>();
     requests.add(request);
 
-    ImageAnnotatorClient client = ImageAnnotatorClient.create();
-    BatchAnnotateImagesResponse batchResponse = client.batchAnnotateImages(requests);
-    client.close();
+    BatchAnnotateImagesResponse batchResponse;
+    try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
+      batchResponse = client.batchAnnotateImages(requests);
+    }
     List<AnnotateImageResponse> imageResponses = batchResponse.getResponsesList();
     AnnotateImageResponse imageResponse = imageResponses.get(0);
 
