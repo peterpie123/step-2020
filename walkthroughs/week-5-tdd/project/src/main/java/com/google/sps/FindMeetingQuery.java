@@ -14,7 +14,9 @@
 
 package com.google.sps;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,8 +28,13 @@ public final class FindMeetingQuery {
     NONE, REQUIRED, OPTIONAL
   }
 
+  /** Have end time for meetings be exclusive */
+  private static final boolean TIME_EXCLUSIVE = false;
+  /** Have end time for meetings be inclusive */
+  private static final boolean TIME_INCLUSIVE = true;
+
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
-    Set<TimeRange> possibleTimes = new HashSet<>();
+    List<TimeRange> possibleTimes = new ArrayList<>();
     // Starting out, any time is possible
     possibleTimes.add(TimeRange.WHOLE_DAY);
 
@@ -40,8 +47,11 @@ public final class FindMeetingQuery {
         // We can't use this meeting time
         subtractTime(possibleTimes, event.getWhen());
       }
-
     });
+
+    // Remove any times that are too small and sort in ascending order
+    possibleTimes.removeIf(time -> time.duration() < request.getDuration());
+    Collections.sort(possibleTimes, TimeRange.ORDER_BY_START);
 
     return possibleTimes;
   }
@@ -62,15 +72,32 @@ public final class FindMeetingQuery {
   }
 
   /** Remove the time taken up by {@code toSubtract} from available times */
-  private static void subtractTime(Set<TimeRange> times, TimeRange toSubtract) {
+  private static void subtractTime(Collection<TimeRange> times, TimeRange toSubtract) {
     // Remove times that are within the range (inclusive) of toSubtract
     times.removeIf(time -> toSubtract.contains(time));
 
     // Eke out any times that have the offending range within them
     List<TimeRange> containTime =
         times.stream().filter(time -> time.contains(toSubtract)).collect(Collectors.toList());
-    // Break up times that are larger than toSubtract
-    
+    // Remove these from available times
+    times.removeAll(containTime);
+
+    // Break up times that include toSubtract
+    containTime.forEach(removedTime -> {
+      if (removedTime.start() == toSubtract.start()) {
+        // Only add the time after toSubtract
+        times.add(TimeRange.fromStartDuration(toSubtract.end(),
+            removedTime.duration() - toSubtract.duration()));
+      } else if (removedTime.end() == toSubtract.end()) {
+        // Only add the time before toSubtract
+        times.add(TimeRange.fromStartDuration(removedTime.start(),
+            removedTime.duration() - toSubtract.duration()));
+      } else {
+        // Split the available time in two
+        times.add(TimeRange.fromStartEnd(removedTime.start(), toSubtract.start(), TIME_EXCLUSIVE));
+        times.add(TimeRange.fromStartEnd(toSubtract.end(), removedTime.end(), TIME_EXCLUSIVE));
+      }
+    });
 
   }
 }
