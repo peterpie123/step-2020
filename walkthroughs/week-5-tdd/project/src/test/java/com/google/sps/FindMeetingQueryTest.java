@@ -362,4 +362,25 @@ public final class FindMeetingQueryTest {
 
     Assert.assertEquals(expected, actual);
   }
+
+  /** Optional attendees with no gaps in their schedule */
+  @Test
+  public void optionalAttendeesNoGaps() {
+    Collection<Event> events = asList(
+        new Event("Event 1",
+            TimeRange.fromStartEnd(TimeRange.START_OF_DAY, TIME_0930AM, TIME_EXCLUSIVE),
+            asList(PERSON_A, PERSON_B)),
+        new Event("Event 2",
+            TimeRange.fromStartEnd(TIME_0930AM, TimeRange.END_OF_DAY, TIME_INCLUSIVE),
+            asList(PERSON_A, PERSON_B)));
+
+    MeetingRequest request = new MeetingRequest(asList(), DURATION_30_MINUTES);
+    request.addOptionalAttendee(PERSON_A);
+    request.addOptionalAttendee(PERSON_B);
+
+    Collection<TimeRange> actual = query.query(events, request);
+    Collection<TimeRange> expected = asList();
+
+    Assert.assertEquals(expected, actual);
+  }
 }
