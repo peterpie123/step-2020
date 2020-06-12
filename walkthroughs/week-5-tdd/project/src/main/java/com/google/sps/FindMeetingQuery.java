@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Finds out times for a possible meeting based on existing meetings */
+/** Finds out times for a possible meeting based on existing meetings. */
 public final class FindMeetingQuery {
   /**
    * The overlap of people between a given meeting and the requested meeting. i.e. whether there are
@@ -62,12 +62,21 @@ public final class FindMeetingQuery {
       }
     });
 
-    List<TimeRange> combinedTimes = reconcileTimes(possibleTimes, optionalTimes);
+    cleanTimes(possibleTimes, request);
+    cleanTimes(optionalTimes, request);
 
-    // Remove any times that are too small and then sort in ascending order
-    possibleTimes.removeIf(time -> time.duration() < request.getDuration());
-    Collections.sort(possibleTimes, TimeRange.ORDER_BY_START);
-    return possibleTimes;
+    // Times that have been reconciled between optional and required attendees
+    List<TimeRange> combinedTimes = new ArrayList<>();
+    if (requiredAttendees.size() == 0) {
+      combinedTimes.addAll(optionalTimes);
+    } else if (optionalAttendees.size() == 0) {
+      combinedTimes.addAll(possibleTimes);
+    } else {
+      combinedTimes.addAll(reconcileTimes(possibleTimes, optionalTimes, request));
+    }
+
+    cleanTimes(combinedTimes, request);
+    return combinedTimes;
   }
 
   /** Checks if there is overlap between attendees for the request and the given event. */
@@ -116,29 +125,62 @@ public final class FindMeetingQuery {
     });
   }
 
-  /** Returns any overlap between the given list of times and the time in question */
+  /** Removes times that are too small and sorts times in ascending order. */
+  private static void cleanTimes(List<TimeRange> times, MeetingRequest request) {
+    // Remove any times that are too small and then sort in ascending order
+    times.removeIf(time -> time.duration() < request.getDuration());
+    Collections.sort(times, TimeRange.ORDER_BY_START);
+  }
+
+  /** Returns any overlap between the given list of times and the time in question. */
   private static List<TimeRange> overlap(Collection<TimeRange> times, TimeRange overlap) {
     List<TimeRange> out = new ArrayList<>();
     times.stream().filter(time -> time.overlaps(overlap)).forEach(time -> {
-      if (overlap.start() < time.end()) {
-        out.add(TimeRange.fromStartEnd(overlap.start(), time.end(), TIME_INCLUSIVE));
+      int start, end;
+
+      if (time.start() > overlap.start()) {
+        start = time.start();
       } else {
-        out.add(TimeRange.fromStartEnd(time.start(), overlap.end(), TIME_INCLUSIVE));
+        start = overlap.start();
       }
+      if (overlap.end() < time.end()) {
+        end = overlap.end();
+      } else {
+        end = time.end();
+      }
+      out.add(TimeRange.fromStartEnd(start, end, TIME_EXCLUSIVE));
     });
+    return out;
+  }
+
+  /** Returns the overlap between the two lists of time. */
+  private static List<TimeRange> overlap(Collection<TimeRange> times1,
+      Collection<TimeRange> times2) {
+    List<TimeRange> out = new ArrayList<>();
+
+    times1.forEach(time -> {
+      out.addAll(overlap(times2, time));
+    });
+
     return out;
   }
 
   /**
    * Returns any overlap between required times and optional times, or defers to required only if
-   * optional attendees cannot attend
+   * optional attendees cannot attend.
    */
   private static List<TimeRange> reconcileTimes(Collection<TimeRange> requiredTimes,
-      Collection<TimeRange> optionalTimes) {
+      Collection<TimeRange> optionalTimes, MeetingRequest request) {
     List<TimeRange> out = new ArrayList<>();
-    requiredTimes.forEach(time -> {
 
-    });
+    // Find overlap between times
+    out.addAll(overlap(optionalTimes, requiredTimes));
+    // Remove times that are too small
+    cleanTimes(out, request);
+    // If there is no overlap then optional cannot attend, so defer to required
+    if (out.size() == 0) {
+      out.addAll(requiredTimes);
+    }
 
     return out;
   }
