@@ -27,7 +27,7 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 public class ImageServlet extends HttpServlet {
   private BlobstoreService blobstoreService;
 
-  public ImageServlet(BlobstoreService blobstoreService) {
+  ImageServlet(BlobstoreService blobstoreService) {
     this.blobstoreService = blobstoreService;
   }
 

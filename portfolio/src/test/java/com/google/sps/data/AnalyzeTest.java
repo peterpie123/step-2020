@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.sps;
+package com.google.sps.data;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,9 +42,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
-/** */
+/** Tests the CommentAnalysis class */
 @RunWith(JUnit4.class)
 public class AnalyzeTest {
+  /** Test sentiment analysis */
   @Test
   public void testAnalyzeText() {
     CommentAnalysis analysis = new CommentAnalysis();
@@ -61,7 +62,6 @@ public class AnalyzeTest {
     when(sentiment.getScore()).thenReturn(expectedSentiment);
 
     analysis.analyzeText(comment, client);
-
     Assert.assertEquals(expectedSentiment, analysis.getTextSentiment(), .001);
   }
 }

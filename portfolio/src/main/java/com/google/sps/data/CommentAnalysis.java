@@ -45,7 +45,7 @@ public class CommentAnalysis {
   private float sentimentScore;
 
   /** Represents a single label for an image. Serves as a convenient wrapper for serialization. */
-  private static class ImageLabel {
+  public static class ImageLabel {
     private final String description;
     /** How closely the AI believes this label applies. Range: [0,1]. */
     private final float score;
@@ -79,13 +79,10 @@ public class CommentAnalysis {
       List<EntityAnnotation> labels = getImageLabels(imageBytes);
       labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
     }
-    comment.getBlobKey().ifPresent(blobKey -> {
-
-    });
   }
 
   /** Same as analyzeText, just with a configurable GCloud api */
-  public void analyzeText(Comment comment, LanguageServiceClient client) {
+  void analyzeText(Comment comment, LanguageServiceClient client) {
     Document doc = Document.newBuilder().setContent(comment.getText())
         .setType(Document.Type.PLAIN_TEXT).build();
     Sentiment sentiment = client.analyzeSentiment(doc).getDocumentSentiment();
@@ -101,6 +98,10 @@ public class CommentAnalysis {
 
   public float getTextSentiment() {
     return sentimentScore;
+  }
+
+  public List<ImageLabel> getImageLabels() {
+    return imageLabels;
   }
 
   @Override

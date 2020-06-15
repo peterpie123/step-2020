@@ -44,7 +44,7 @@ public class AnalyzeServlet extends HttpServlet {
     commentStore = CommentPersistHelper.getInstance();
   }
 
-  public void doPost(HttpServletRequest request, HttpServletResponse response, CommentAnalysis analysis) throws IOException {
+  void doPost(HttpServletRequest request, HttpServletResponse response, CommentAnalysis analysis) throws IOException {
 
   }
 
