@@ -16,11 +16,17 @@ package com.google.sps;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.verify;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Collections;
+import javax.servlet.http.HttpServletResponse;
+import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.sps.data.CommentPersistHelper;
 import com.google.sps.servlets.DataServlet;
+import com.google.sps.servlets.ImageServlet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,17 +36,23 @@ import org.mockito.Mockito;
 
 /** */
 @RunWith(JUnit4.class)
-public class CreateCommentTest {
+public class ServletTests {
 
-  /** Test the creation of a comment */
+  /** Test that an image upload alias is successfully created */
   @Test
-  public void createNewComment() {
-    CommentPersistHelper helper = mock(CommentPersistHelper.class);
+  public void testUploadImage() throws IOException {
+    BlobstoreService service = mock(BlobstoreService.class);
+    String imageUrl = "/upload-new-image";
+    when(service.createUploadUrl(anyString())).thenReturn(imageUrl);
 
-    when(helper.getNumberComments()).thenReturn(1);
+    ImageServlet imageServlet = new ImageServlet(service);
 
-    DataServlet servlet = new DataServlet();
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    PrintWriter writer = mock(PrintWriter.class);
+    when(response.getWriter()).thenReturn(writer);
 
+    imageServlet.doGet(null, response);
+    verify(writer).println(imageUrl);
   }
 
 }
