@@ -14,22 +14,33 @@
 
 package com.google.sps;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.Collection;
 import java.util.Collections;
+import com.google.sps.data.CommentPersistHelper;
 import com.google.sps.servlets.DataServlet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 /** */
 @RunWith(JUnit4.class)
 public class CreateCommentTest {
 
+  /** Test the creation of a comment */
   @Test
   public void createNewComment() {
+    CommentPersistHelper helper = mock(CommentPersistHelper.class);
+
+    when(helper.getNumberComments()).thenReturn(1);
+
     DataServlet servlet = new DataServlet();
+
   }
 
 }
