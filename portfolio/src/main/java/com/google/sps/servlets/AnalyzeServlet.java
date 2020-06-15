@@ -44,19 +44,13 @@ public class AnalyzeServlet extends HttpServlet {
     commentStore = CommentPersistHelper.getInstance();
   }
 
-  void doPost(HttpServletRequest request, HttpServletResponse response, CommentAnalysis analysis) throws IOException {
-
-  }
-
-  @Override
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    CommentAnalysis analysis = new CommentAnalysis();
-
+  void doPost(HttpServletRequest request, HttpServletResponse response, CommentAnalysis analysis)
+      throws IOException {
     try {
       long commentId = Long.parseLong(request.getParameter(COMMENT_ID));
       Optional<Comment> comment = commentStore.getCommentById(commentId);
       // Avoid using ifPresent since lambdas don't play nice with exceptions
-      if(comment.isPresent()) {
+      if (comment.isPresent()) {
         analysis.analyzeImage(comment.get());
         analysis.analyzeText(comment.get());
         response.getWriter().println(analysis.toString());
@@ -65,5 +59,11 @@ public class AnalyzeServlet extends HttpServlet {
       throw new IllegalArgumentException(
           request.getParameter(COMMENT_ID) + " is an invalid Comment ID. Aborting analysis...", e);
     }
+  }
+
+
+  @Override
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    doPost(request, response, new CommentAnalysis());
   }
 }
