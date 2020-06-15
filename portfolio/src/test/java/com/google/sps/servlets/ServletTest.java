@@ -16,6 +16,7 @@ package com.google.sps.servlets;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
@@ -110,15 +111,23 @@ public class ServletTest {
     long id = 1;
 
     CommentAnalysis analysis = mock(CommentAnalysis.class);
-    Comment comment = mock(Comment.class);
+
 
     CommentPersistHelper helper = mock(CommentPersistHelper.class);
     AnalyzeServlet servlet = new AnalyzeServlet(helper);
 
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    PrintWriter writer = mock(PrintWriter.class);
+
+    when(request.getParameter("id")).thenReturn("" + id);
     when(helper.getCommentById(id)).thenReturn(Optional.empty());
 
-    verify(analysis, never()).analyzeText(comment);
-    verify(analysis, never()).analyzeImage(comment);
+    servlet.doPost(request, response, analysis);
+
+    verify(analysis, never()).analyzeText(any(Comment.class));
+    verify(analysis, never()).analyzeImage(any(Comment.class));
+    verify(response, never()).getWriter();
   }
 
 }

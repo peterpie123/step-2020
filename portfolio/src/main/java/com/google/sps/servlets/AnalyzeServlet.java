@@ -35,7 +35,7 @@ public class AnalyzeServlet extends HttpServlet {
 
   private static CommentPersistHelper commentStore;
 
-  public AnalyzeServlet(CommentPersistHelper commentStore) {
+  AnalyzeServlet(CommentPersistHelper commentStore) {
     this.commentStore = commentStore;
   }
 
