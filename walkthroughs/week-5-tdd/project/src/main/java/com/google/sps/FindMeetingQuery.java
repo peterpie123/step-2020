@@ -17,11 +17,14 @@ package com.google.sps;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
+
 
 /** Finds out times for a possible meeting based on existing meetings. */
 public final class FindMeetingQuery {
@@ -53,7 +56,8 @@ public final class FindMeetingQuery {
     Map<String, List<TimeRange>> optionalTimes = new HashMap<>();
     optionalAttendees.forEach(attendee -> {
       // Each attendee can attend the whole day to start
-      List<TimeRange> times = List.of(TimeRange.WHOLE_DAY);
+      List<TimeRange> times = new ArrayList<>();
+      times.add(TimeRange.WHOLE_DAY);
       optionalTimes.put(attendee, times);
     });
 
@@ -72,17 +76,11 @@ public final class FindMeetingQuery {
     });
 
     cleanTimes(possibleTimes, request);
-    cleanTimes(optionalTimes, request);
+    optionalTimes.values().forEach(times -> cleanTimes(times, request));
 
     // Times that have been reconciled between optional and required attendees
-    List<TimeRange> combinedTimes = new ArrayList<>();
-        if (requiredAttendees.size() == 0) {
-      combinedTimes.addAll(optionalTimes);
-    } else if (optionalAttendees.size() == 0) {
-      combinedTimes.addAll(possibleTimes);
-    } else {
-      combinedTimes.addAll(reconcileTimes(possibleTimes, optionalTimes, request));
-    }
+    List<TimeRange> combinedTimes =
+        new ArrayList<>(optimizeTimes(possibleTimes, optionalTimes, request));
 
     cleanTimes(combinedTimes, request);
     return combinedTimes;
@@ -198,5 +196,51 @@ public final class FindMeetingQuery {
     cleanTimes(out, request);
 
     return out;
+  }
+
+  /** Combine the available times of the given attendees */
+  private static List<TimeRange> combineTimes(Map<String, List<TimeRange>> times,
+      Set<String> attendees) {
+    List<TimeRange> out = new ArrayList<>();
+    out.add(TimeRange.WHOLE_DAY);
+
+    attendees.forEach(attendee -> {
+      List<TimeRange> overlap = overlap(out, times.get(attendee));
+      out.clear();
+      out.addAll(overlap);
+    });
+    return out;
+  }
+
+  /** Optimize for the most attendees */
+  private static Collection<TimeRange> optimizeTimes(Collection<TimeRange> requiredTimes,
+      Map<String, List<TimeRange>> optionalTimes, MeetingRequest request) {
+    Set<Set<String>> attendeeCombinations = Sets.powerSet(optionalTimes.keySet());
+
+    // First look for largest groups of attendees
+    for (int i = optionalTimes.size(); i >= 0; i--) {
+      int size = i;
+      List<List<TimeRange>> possibleTimes = new ArrayList<>();
+
+      attendeeCombinations.stream().filter(e -> e.size() == size).forEach(attendees -> {
+        List<TimeRange> times = combineTimes(optionalTimes, attendees);
+        possibleTimes.add(reconcileTimes(requiredTimes, times, request));
+      });
+
+      possibleTimes.forEach(times -> {
+        cleanTimes(times, request);
+      });
+
+      Optional<List<TimeRange>> timeMatch =
+          possibleTimes.stream().filter(list -> list.size() > 0).findFirst();
+      if (timeMatch.isPresent()) {
+        return timeMatch.get();
+      }
+    }
+    if (request.getAttendees().size() > 0) {
+      return requiredTimes;
+    } else {
+      return new ArrayList<>();
+    }
   }
 }
