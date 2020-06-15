@@ -218,17 +218,15 @@ public final class FindMeetingQuery {
     Set<Set<String>> attendeeCombinations = Sets.powerSet(optionalTimes.keySet());
 
     // First look for largest groups of attendees
-    for (int i = optionalTimes.size(); i >= 0; i--) {
+    for (int i = optionalTimes.size(); i > 0; i--) {
       int size = i;
       List<List<TimeRange>> possibleTimes = new ArrayList<>();
 
       attendeeCombinations.stream().filter(e -> e.size() == size).forEach(attendees -> {
         List<TimeRange> times = combineTimes(optionalTimes, attendees);
-        possibleTimes.add(reconcileTimes(requiredTimes, times, request));
-      });
-
-      possibleTimes.forEach(times -> {
-        cleanTimes(times, request);
+        List<TimeRange> reconciled = reconcileTimes(requiredTimes, times, request);
+        cleanTimes(reconciled, request);
+        possibleTimes.add(reconciled);
       });
 
       Optional<List<TimeRange>> timeMatch =
@@ -237,7 +235,7 @@ public final class FindMeetingQuery {
         return timeMatch.get();
       }
     }
-    if (request.getAttendees().size() > 0) {
+    if (request.getAttendees().size() > 0 || request.getOptionalAttendees().size() == 0) {
       return requiredTimes;
     } else {
       return new ArrayList<>();
