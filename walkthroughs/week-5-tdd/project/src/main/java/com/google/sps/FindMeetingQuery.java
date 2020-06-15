@@ -17,7 +17,10 @@ package com.google.sps;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /** Finds out times for a possible meeting based on existing meetings. */
@@ -42,13 +45,17 @@ public final class FindMeetingQuery {
     // Starting out, any time is possible
     possibleTimes.add(TimeRange.WHOLE_DAY);
 
-    // Times which work for optional attendees
-    List<TimeRange> optionalTimes = new ArrayList<>();
-    // Starting out, any time is possible
-    optionalTimes.add(TimeRange.WHOLE_DAY);
-
     Collection<String> requiredAttendees = request.getAttendees();
     Collection<String> optionalAttendees = request.getOptionalAttendees();
+
+    // Times which work for optional attendees, mapped by name of
+    // optional attendee
+    Map<String, List<TimeRange>> optionalTimes = new HashMap<>();
+    optionalAttendees.forEach(attendee -> {
+      // Each attendee can attend the whole day to start
+      List<TimeRange> times = List.of(TimeRange.WHOLE_DAY);
+      optionalTimes.put(attendee, times);
+    });
 
     // Look for collisions with other meetings
     events.stream().forEach(event -> {
@@ -56,10 +63,12 @@ public final class FindMeetingQuery {
       if (eventOverlap == Overlap.REQUIRED) {
         // We can't use this meeting time since at least a required attendee is at another meeting
         subtractTime(possibleTimes, event.getWhen());
-      } else if (eventOverlap == Overlap.OPTIONAL) {
-        // This meeting doesn't work for all attendees
-        subtractTime(optionalTimes, event.getWhen());
       }
+
+      // Handle optional attendees
+      getOptional(optionalAttendees, event).forEach(attendee -> {
+        subtractTime(optionalTimes.get(attendee), event.getWhen());
+      });
     });
 
     cleanTimes(possibleTimes, request);
@@ -67,7 +76,7 @@ public final class FindMeetingQuery {
 
     // Times that have been reconciled between optional and required attendees
     List<TimeRange> combinedTimes = new ArrayList<>();
-    if (requiredAttendees.size() == 0) {
+        if (requiredAttendees.size() == 0) {
       combinedTimes.addAll(optionalTimes);
     } else if (optionalAttendees.size() == 0) {
       combinedTimes.addAll(possibleTimes);
@@ -77,6 +86,17 @@ public final class FindMeetingQuery {
 
     cleanTimes(combinedTimes, request);
     return combinedTimes;
+  }
+
+  /** Returns the optional attendees at the given event */
+  private static Collection<String> getOptional(Collection<String> optionalAttendees, Event event) {
+    List<String> out = new ArrayList<>();
+    event.getAttendees().stream().filter(attendee -> optionalAttendees.contains(attendee))
+        .forEach(attendee -> {
+          out.add(attendee);
+        });
+
+    return out;
   }
 
   /** Checks if there is overlap between attendees for the request and the given event. */
@@ -166,8 +186,7 @@ public final class FindMeetingQuery {
   }
 
   /**
-   * Returns any overlap between required times and optional times, or defers to required only if
-   * optional attendees cannot attend.
+   * Returns any overlap between required times and optional times
    */
   private static List<TimeRange> reconcileTimes(Collection<TimeRange> requiredTimes,
       Collection<TimeRange> optionalTimes, MeetingRequest request) {
@@ -177,10 +196,6 @@ public final class FindMeetingQuery {
     out.addAll(overlap(optionalTimes, requiredTimes));
     // Remove times that are too small
     cleanTimes(out, request);
-    // If there is no overlap then optional cannot attend, so defer to required
-    if (out.size() == 0) {
-      out.addAll(requiredTimes);
-    }
 
     return out;
   }
