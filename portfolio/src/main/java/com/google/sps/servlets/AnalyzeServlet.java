@@ -35,9 +35,17 @@ public class AnalyzeServlet extends HttpServlet {
 
   private static CommentPersistHelper commentStore;
 
+  public AnalyzeServlet(CommentPersistHelper commentStore) {
+    this.commentStore = commentStore;
+  }
+
   @Override
   public void init() {
     commentStore = CommentPersistHelper.getInstance();
+  }
+
+  public void doPost(HttpServletRequest request, HttpServletResponse response, CommentAnalysis analysis) throws IOException {
+
   }
 
   @Override

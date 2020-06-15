@@ -47,7 +47,7 @@ public class CommentAnalysis {
   /** Represents a single label for an image. Serves as a convenient wrapper for serialization. */
   private static class ImageLabel {
     private final String description;
-    /** How closely the AI believes this label applies. Range: [0,1].  */
+    /** How closely the AI believes this label applies. Range: [0,1]. */
     private final float score;
 
     public ImageLabel(EntityAnnotation annotation) {
@@ -74,24 +74,33 @@ public class CommentAnalysis {
    */
   public void analyzeImage(Comment comment) throws IOException {
     // Don't use ifPresent since exceptions don't behave well with lambda expressions
-    if(comment.getBlobKey().isPresent()) {
+    if (comment.getBlobKey().isPresent()) {
       byte[] imageBytes = getBlobBytes(comment.getBlobKey().get());
       List<EntityAnnotation> labels = getImageLabels(imageBytes);
       labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
     }
     comment.getBlobKey().ifPresent(blobKey -> {
-      
+
     });
+  }
+
+  /** Same as analyzeText, just with a configurable GCloud api */
+  public void analyzeText(Comment comment, LanguageServiceClient client) {
+    Document doc = Document.newBuilder().setContent(comment.getText())
+        .setType(Document.Type.PLAIN_TEXT).build();
+    Sentiment sentiment = client.analyzeSentiment(doc).getDocumentSentiment();
+    this.sentimentScore = sentiment.getScore();
   }
 
   /** Attaches text analysis, reading from the given comment. */
   public void analyzeText(Comment comment) throws IOException {
     try (LanguageServiceClient languageServiceClient = LanguageServiceClient.create()) {
-      Document doc = Document.newBuilder().setContent(comment.getText())
-          .setType(Document.Type.PLAIN_TEXT).build();
-      Sentiment sentiment = languageServiceClient.analyzeSentiment(doc).getDocumentSentiment();
-      this.sentimentScore = sentiment.getScore();
+      analyzeText(comment, languageServiceClient);
     }
+  }
+
+  public float getTextSentiment() {
+    return sentimentScore;
   }
 
   @Override
