@@ -16,27 +16,13 @@ package com.google.sps.data;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.verify;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Collections;
-import javax.servlet.http.HttpServletResponse;
-import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.cloud.language.v1.AnalyzeSentimentRequest;
 import com.google.cloud.language.v1.AnalyzeSentimentResponse;
 import com.google.cloud.language.v1.Document;
 import com.google.cloud.language.v1.LanguageServiceClient;
 import com.google.cloud.language.v1.Sentiment;
-import com.google.sps.data.Comment;
-import com.google.sps.data.CommentAnalysis;
-import com.google.sps.data.CommentPersistHelper;
-import com.google.sps.servlets.DataServlet;
-import com.google.sps.servlets.ImageServlet;
+import com.google.cloud.vision.v1.EntityAnnotation;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -44,7 +30,7 @@ import org.mockito.Mockito;
 
 /** Tests the CommentAnalysis class */
 @RunWith(JUnit4.class)
-public class AnalyzeTest {
+public class CommentAnalysisTest {
   /** Test sentiment analysis */
   @Test
   public void testAnalyzeText() {
@@ -63,5 +49,21 @@ public class AnalyzeTest {
 
     analysis.analyzeText(comment, client);
     Assert.assertEquals(expectedSentiment, analysis.getTextSentiment(), .001);
+  }
+
+  /** Test the image label static inner class */
+  @Test
+  public void testImageLabel() {
+    String description = "Test description";
+    float score = -17;
+
+    EntityAnnotation annotation = mock(EntityAnnotation.class);
+    when(annotation.getDescription()).thenReturn(description);
+    when(annotation.getScore()).thenReturn(score);
+
+    CommentAnalysis.ImageLabel label = new CommentAnalysis.ImageLabel(annotation);
+
+    Assert.assertEquals(description, label.getDescription());
+    Assert.assertEquals(score, label.getScore(), .001);
   }
 }

@@ -14,72 +14,24 @@
 
 package com.google.sps.servlets;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.cloud.vision.v1.EntityAnnotation;
 import com.google.sps.data.Comment;
 import com.google.sps.data.CommentAnalysis;
 import com.google.sps.data.CommentPersistHelper;
-import com.google.sps.servlets.DataServlet;
-import com.google.sps.servlets.ImageServlet;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-/** */
-@RunWith(JUnit4.class)
-public class ServletTest {
-
-  /** Test that an image upload alias is successfully created */
-  @Test
-  public void testUploadImage() throws IOException {
-    BlobstoreService service = mock(BlobstoreService.class);
-    String imageUrl = "/upload-new-image";
-    when(service.createUploadUrl(anyString())).thenReturn(imageUrl);
-
-    ImageServlet imageServlet = new ImageServlet(service);
-
-    HttpServletResponse response = mock(HttpServletResponse.class);
-    PrintWriter writer = mock(PrintWriter.class);
-    when(response.getWriter()).thenReturn(writer);
-
-    imageServlet.doGet(null, response);
-    verify(writer).println(imageUrl);
-  }
-
-  /** Test the image label class */
-  @Test
-  public void testImageLabel() {
-    String description = "Test description";
-    float score = -17;
-
-    EntityAnnotation annotation = mock(EntityAnnotation.class);
-    when(annotation.getDescription()).thenReturn(description);
-    when(annotation.getScore()).thenReturn(score);
-
-    CommentAnalysis.ImageLabel label = new CommentAnalysis.ImageLabel(annotation);
-
-    Assert.assertEquals(description, label.getDescription());
-    Assert.assertEquals(score, label.getScore(), .001);
-  }
-
+public class AnalyzeServletTest {
   /** Test that a comment is analyzed when present */
   @Test
   public void testAnalyzePresent() throws IOException {
@@ -129,5 +81,4 @@ public class ServletTest {
     verify(analysis, never()).analyzeImage(any(Comment.class));
     verify(response, never()).getWriter();
   }
-
 }
