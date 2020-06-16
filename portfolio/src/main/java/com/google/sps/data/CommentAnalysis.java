@@ -44,26 +44,6 @@ public class CommentAnalysis {
   /** The sentiment of the comment, ranging from -1 (very negative) to 1 (very positive) */
   private float sentimentScore;
 
-  /** Represents a single label for an image. Serves as a convenient wrapper for serialization. */
-  public static class ImageLabel {
-    private final String description;
-    /** How closely the AI believes this label applies. Range: [0,1]. */
-    private final float score;
-
-    public ImageLabel(EntityAnnotation annotation) {
-      description = annotation.getDescription();
-      score = annotation.getScore();
-    }
-
-    public String getDescription() {
-      return description;
-    }
-
-    public float getScore() {
-      return score;
-    }
-  }
-
   public CommentAnalysis() {
     imageLabels = new ArrayList<>();
   }

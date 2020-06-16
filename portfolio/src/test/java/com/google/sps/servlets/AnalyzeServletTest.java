@@ -36,7 +36,7 @@ public class AnalyzeServletTest {
   @Test
   public void testAnalyzePresent() throws IOException {
     long id = 1;
-    
+
     CommentAnalysis analysis = mock(CommentAnalysis.class);
     Comment comment = mock(Comment.class);
     CommentPersistHelper helper = mock(CommentPersistHelper.class);

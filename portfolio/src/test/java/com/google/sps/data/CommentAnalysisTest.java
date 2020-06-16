@@ -21,7 +21,6 @@ import com.google.cloud.language.v1.AnalyzeSentimentResponse;
 import com.google.cloud.language.v1.Document;
 import com.google.cloud.language.v1.LanguageServiceClient;
 import com.google.cloud.language.v1.Sentiment;
-import com.google.cloud.vision.v1.EntityAnnotation;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,19 +50,5 @@ public class CommentAnalysisTest {
     Assert.assertEquals(expectedSentiment, analysis.getTextSentiment(), .001);
   }
 
-  /** Test the image label static inner class */
-  @Test
-  public void testImageLabel() {
-    String description = "Test description";
-    float score = -17;
 
-    EntityAnnotation annotation = mock(EntityAnnotation.class);
-    when(annotation.getDescription()).thenReturn(description);
-    when(annotation.getScore()).thenReturn(score);
-
-    CommentAnalysis.ImageLabel label = new CommentAnalysis.ImageLabel(annotation);
-
-    Assert.assertEquals(description, label.getDescription());
-    Assert.assertEquals(score, label.getScore(), .001);
-  }
 }
