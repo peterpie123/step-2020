@@ -14,13 +14,22 @@
 
 package com.google.sps;
 
+import static com.google.sps.QueryUtil.subtractTime;
+import static com.google.sps.QueryUtil.overlap;
+import static com.google.sps.QueryUtil.combineTimes;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import com.google.common.collect.Sets;
 
-/** Finds out times for a possible meeting based on existing meetings */
+
+/** Finds out times for a possible meeting based on existing meetings. */
 public final class FindMeetingQuery {
   /**
    * The overlap of people between a given meeting and the requested meeting. i.e. whether there are
@@ -30,11 +39,9 @@ public final class FindMeetingQuery {
     NONE, REQUIRED, OPTIONAL
   }
 
-  /** Have end time for meetings be exclusive. */
-  private static final boolean TIME_EXCLUSIVE = false;
-
   /** Construct possible meeting times based on the given events and attendees. */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
+    // Times which fultill requirements (all required attendees)
     List<TimeRange> possibleTimes = new ArrayList<>();
     // Starting out, any time is possible
     possibleTimes.add(TimeRange.WHOLE_DAY);
@@ -42,18 +49,51 @@ public final class FindMeetingQuery {
     Collection<String> requiredAttendees = request.getAttendees();
     Collection<String> optionalAttendees = request.getOptionalAttendees();
 
+    // Times which work for optional attendees, mapped by name of
+    // optional attendee
+    Map<String, List<TimeRange>> optionalTimes = new HashMap<>();
+    optionalAttendees.forEach(attendee -> {
+      // Each attendee can attend the whole day to start
+      List<TimeRange> times = new ArrayList<>();
+      times.add(TimeRange.WHOLE_DAY);
+      optionalTimes.put(attendee, times);
+    });
+
     // Look for collisions with other meetings
     events.stream().forEach(event -> {
-      if (isAttendeeOverlap(requiredAttendees, optionalAttendees, event) == Overlap.REQUIRED) {
+      Overlap eventOverlap = isAttendeeOverlap(requiredAttendees, optionalAttendees, event);
+      if (eventOverlap == Overlap.REQUIRED) {
         // We can't use this meeting time since at least a required attendee is at another meeting
         subtractTime(possibleTimes, event.getWhen());
       }
+
+      // Handle times for optional attendees
+      getOptionalAttendees(optionalAttendees, event).forEach(attendee -> {
+        subtractTime(optionalTimes.get(attendee), event.getWhen());
+      });
     });
 
-    // Remove any times that are too small and then sort in ascending order
-    possibleTimes.removeIf(time -> time.duration() < request.getDuration());
-    Collections.sort(possibleTimes, TimeRange.ORDER_BY_START);
-    return possibleTimes;
+    verifySortTimes(possibleTimes, request);
+    optionalTimes.values().forEach(times -> verifySortTimes(times, request));
+
+    // Times that have been reconciled between optional and required attendees
+    List<TimeRange> combinedTimes =
+        new ArrayList<>(optimizeTimes(possibleTimes, optionalTimes, request));
+    verifySortTimes(combinedTimes, request);
+
+    return combinedTimes;
+  }
+
+  /** Returns the optional attendees at the given event */
+  private static Collection<String> getOptionalAttendees(Collection<String> optionalAttendees,
+      Event event) {
+    List<String> out = new ArrayList<>();
+    event.getAttendees().stream().filter(attendee -> optionalAttendees.contains(attendee))
+        .forEach(attendee -> {
+          out.add(attendee);
+        });
+
+    return out;
   }
 
   /** Checks if there is overlap between attendees for the request and the given event. */
@@ -70,35 +110,60 @@ public final class FindMeetingQuery {
     return Overlap.NONE;
   }
 
-  /** Remove the time taken up by {@code toSubtract} from available times. */
-  private static void subtractTime(Collection<TimeRange> availableTimes, TimeRange toSubtract) {
-    // Remove times that are within the range (inclusive) of toSubtract
-    availableTimes.removeIf(time -> toSubtract.contains(time));
+  /** Removes times that are too small and sorts times in ascending order. */
+  private static void verifySortTimes(List<TimeRange> times, MeetingRequest request) {
+    // Remove any times that are too small and then sort in ascending order
+    times.removeIf(time -> time.duration() < request.getDuration());
+    Collections.sort(times, TimeRange.ORDER_BY_START);
+  }
 
-    // Eke out any times that have the offending time range within them
-    List<TimeRange> containTime = availableTimes.stream()
-        .filter(time -> time.contains(toSubtract.start()) || time.contains(toSubtract.end()))
-        .collect(Collectors.toList());
-    // Remove these from available times
-    availableTimes.removeAll(containTime);
+  /**
+   * Returns any overlap between required times and optional times
+   */
+  private static List<TimeRange> reconcileTimes(Collection<TimeRange> requiredTimes,
+      Collection<TimeRange> optionalTimes, MeetingRequest request) {
+    List<TimeRange> out = new ArrayList<>();
 
-    // Break up times that include toSubtract
-    containTime.forEach(removedTime -> {
-      if (removedTime.start() == toSubtract.start()) {
-        // Add the time after toSubtract
-        availableTimes
-            .add(TimeRange.fromStartEnd(toSubtract.end(), removedTime.end(), TIME_EXCLUSIVE));
-      } else if (removedTime.end() == toSubtract.end()) {
-        // Add the time before toSubtract
-        availableTimes
-            .add(TimeRange.fromStartEnd(removedTime.start(), toSubtract.start(), TIME_EXCLUSIVE));
-      } else {
-        // Split the available time in two
-        availableTimes
-            .add(TimeRange.fromStartEnd(removedTime.start(), toSubtract.start(), TIME_EXCLUSIVE));
-        availableTimes
-            .add(TimeRange.fromStartEnd(toSubtract.end(), removedTime.end(), TIME_EXCLUSIVE));
+    // Find overlap between times
+    out.addAll(overlap(optionalTimes, requiredTimes));
+    // Remove times that are too small
+    verifySortTimes(out, request);
+
+    return out;
+  }
+
+  /** Optimize for the most attendees */
+  private static Collection<TimeRange> optimizeTimes(Collection<TimeRange> requiredTimes,
+      Map<String, List<TimeRange>> optionalTimes, MeetingRequest request) {
+    // Nope, it's not efficient. O(2^n)
+    Set<Set<String>> attendeeCombinations = Sets.powerSet(optionalTimes.keySet());
+
+    // First look for largest groups of attendees
+    for (int i = optionalTimes.size(); i > 0; i--) {
+      int size = i;
+      // All times that can be produced by groups of this size
+      List<List<TimeRange>> possibleTimes = new ArrayList<>();
+
+      attendeeCombinations.stream().filter(e -> e.size() == size).forEach(attendees -> {
+        // Combine the times of all attendees and reconcile with required times
+        List<TimeRange> times = combineTimes(optionalTimes, attendees);
+        List<TimeRange> reconciled = reconcileTimes(requiredTimes, times, request);
+
+        verifySortTimes(reconciled, request);
+        possibleTimes.add(reconciled);
+      });
+
+      // Only return if there is a TimeRange that can fit a meeting
+      Optional<List<TimeRange>> timeMatch =
+          possibleTimes.stream().filter(list -> list.size() > 0).findFirst();
+      if (timeMatch.isPresent()) {
+        return timeMatch.get();
       }
-    });
+    }
+    if (request.getAttendees().size() > 0 || request.getOptionalAttendees().size() == 0) {
+      return requiredTimes;
+    } else {
+      return new ArrayList<>();
+    }
   }
 }
