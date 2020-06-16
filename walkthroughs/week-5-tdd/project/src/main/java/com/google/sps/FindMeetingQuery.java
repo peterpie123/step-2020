@@ -14,6 +14,10 @@
 
 package com.google.sps;
 
+import static com.google.sps.QueryUtil.subtractTime;
+import static com.google.sps.QueryUtil.overlap;
+import static com.google.sps.QueryUtil.combineTimes;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import com.google.common.collect.Sets;
 
 
@@ -35,11 +38,6 @@ public final class FindMeetingQuery {
   private static enum Overlap {
     NONE, REQUIRED, OPTIONAL
   }
-
-  /** Have end time for meetings be exclusive. */
-  private static final boolean TIME_EXCLUSIVE = false;
-  /** Have end time for meetings be inclusive. */
-  private static final boolean TIME_INCLUSIVE = true;
 
   /** Construct possible meeting times based on the given events and attendees. */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
@@ -70,24 +68,25 @@ public final class FindMeetingQuery {
       }
 
       // Handle times for optional attendees
-      getOptional(optionalAttendees, event).forEach(attendee -> {
+      getOptionalAttendees(optionalAttendees, event).forEach(attendee -> {
         subtractTime(optionalTimes.get(attendee), event.getWhen());
       });
     });
 
-    cleanTimes(possibleTimes, request);
-    optionalTimes.values().forEach(times -> cleanTimes(times, request));
+    verifySortTimes(possibleTimes, request);
+    optionalTimes.values().forEach(times -> verifySortTimes(times, request));
 
     // Times that have been reconciled between optional and required attendees
     List<TimeRange> combinedTimes =
         new ArrayList<>(optimizeTimes(possibleTimes, optionalTimes, request));
-    cleanTimes(combinedTimes, request);
+    verifySortTimes(combinedTimes, request);
 
     return combinedTimes;
   }
 
   /** Returns the optional attendees at the given event */
-  private static Collection<String> getOptional(Collection<String> optionalAttendees, Event event) {
+  private static Collection<String> getOptionalAttendees(Collection<String> optionalAttendees,
+      Event event) {
     List<String> out = new ArrayList<>();
     event.getAttendees().stream().filter(attendee -> optionalAttendees.contains(attendee))
         .forEach(attendee -> {
@@ -111,76 +110,11 @@ public final class FindMeetingQuery {
     return Overlap.NONE;
   }
 
-  /** Remove the time taken up by {@code toSubtract} from available times. */
-  private static void subtractTime(Collection<TimeRange> availableTimes, TimeRange toSubtract) {
-    // Remove times that are within the range (inclusive) of toSubtract
-    availableTimes.removeIf(time -> toSubtract.contains(time));
-
-    // Eke out any times that have the offending time range within them
-    List<TimeRange> containTime = availableTimes.stream()
-        .filter(time -> time.contains(toSubtract.start()) || time.contains(toSubtract.end()))
-        .collect(Collectors.toList());
-    // Remove these from available times
-    availableTimes.removeAll(containTime);
-
-    // Break up times that include toSubtract
-    containTime.forEach(removedTime -> {
-      if (removedTime.start() == toSubtract.start()) {
-        // Add the time after toSubtract
-        availableTimes
-            .add(TimeRange.fromStartEnd(toSubtract.end(), removedTime.end(), TIME_EXCLUSIVE));
-      } else if (removedTime.end() == toSubtract.end()) {
-        // Add the time before toSubtract
-        availableTimes
-            .add(TimeRange.fromStartEnd(removedTime.start(), toSubtract.start(), TIME_EXCLUSIVE));
-      } else {
-        // Split the available time in two
-        availableTimes
-            .add(TimeRange.fromStartEnd(removedTime.start(), toSubtract.start(), TIME_EXCLUSIVE));
-        availableTimes
-            .add(TimeRange.fromStartEnd(toSubtract.end(), removedTime.end(), TIME_EXCLUSIVE));
-      }
-    });
-  }
-
   /** Removes times that are too small and sorts times in ascending order. */
-  private static void cleanTimes(List<TimeRange> times, MeetingRequest request) {
+  private static void verifySortTimes(List<TimeRange> times, MeetingRequest request) {
     // Remove any times that are too small and then sort in ascending order
     times.removeIf(time -> time.duration() < request.getDuration());
     Collections.sort(times, TimeRange.ORDER_BY_START);
-  }
-
-  /** Returns any overlap between the given list of times and the time in question. */
-  private static List<TimeRange> overlap(Collection<TimeRange> times, TimeRange overlap) {
-    List<TimeRange> out = new ArrayList<>();
-    times.stream().filter(time -> time.overlaps(overlap)).forEach(time -> {
-      int start, end;
-
-      if (time.start() > overlap.start()) {
-        start = time.start();
-      } else {
-        start = overlap.start();
-      }
-      if (overlap.end() < time.end()) {
-        end = overlap.end();
-      } else {
-        end = time.end();
-      }
-      out.add(TimeRange.fromStartEnd(start, end, TIME_EXCLUSIVE));
-    });
-    return out;
-  }
-
-  /** Returns the overlap between the two lists of time. */
-  private static List<TimeRange> overlap(Collection<TimeRange> times1,
-      Collection<TimeRange> times2) {
-    List<TimeRange> out = new ArrayList<>();
-
-    times1.forEach(time -> {
-      out.addAll(overlap(times2, time));
-    });
-
-    return out;
   }
 
   /**
@@ -193,23 +127,8 @@ public final class FindMeetingQuery {
     // Find overlap between times
     out.addAll(overlap(optionalTimes, requiredTimes));
     // Remove times that are too small
-    cleanTimes(out, request);
+    verifySortTimes(out, request);
 
-    return out;
-  }
-
-  /** Combine the available times of the given attendees */
-  private static List<TimeRange> combineTimes(Map<String, List<TimeRange>> times,
-      Set<String> attendees) {
-    List<TimeRange> out = new ArrayList<>();
-    out.add(TimeRange.WHOLE_DAY);
-
-    attendees.forEach(attendee -> {
-      List<TimeRange> overlap = overlap(out, times.get(attendee));
-      // Workaround as can't do out = ... in a lambda
-      out.clear();
-      out.addAll(overlap);
-    });
     return out;
   }
 
@@ -230,7 +149,7 @@ public final class FindMeetingQuery {
         List<TimeRange> times = combineTimes(optionalTimes, attendees);
         List<TimeRange> reconciled = reconcileTimes(requiredTimes, times, request);
 
-        cleanTimes(reconciled, request);
+        verifySortTimes(reconciled, request);
         possibleTimes.add(reconciled);
       });
 
