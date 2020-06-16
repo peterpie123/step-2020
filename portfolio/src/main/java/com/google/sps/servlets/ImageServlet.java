@@ -25,9 +25,19 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 /** Servlet that retrieves image upload URL and uploads images. */
 @WebServlet("/image")
 public class ImageServlet extends HttpServlet {
+  private BlobstoreService blobstoreService;
+
+  ImageServlet(BlobstoreService blobstoreService) {
+    this.blobstoreService = blobstoreService;
+  }
+
+  @Override
+  public void init() {
+    blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+  }
+
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     String uploadUrl = blobstoreService.createUploadUrl("/data");
 
     response.setContentType("text/html");

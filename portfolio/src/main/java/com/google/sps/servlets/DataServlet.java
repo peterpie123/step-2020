@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.sps.data.CommentPersistHelper;
 
 /**
- * Servlet that returns some example content. TODO: modify this file to handle comments data.
+ * Servlet that returns some example content.
  */
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
