@@ -9,6 +9,7 @@ const URL = "https://www.google.com/webhp?hl=en";
 
 describe("Selenium", () => {
   beforeEach(async () => {
+    console.log("Before");
     driver = await new Builder(path)
       .forBrowser("chrome")
       .setChromeOptions(chromeOptions)
@@ -17,6 +18,7 @@ describe("Selenium", () => {
   });
 
   afterEach(async () => {
+    console.log("After");
     await driver.quit();
   });
 
