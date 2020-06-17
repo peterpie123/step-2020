@@ -14,6 +14,8 @@
 
 package com.google.sps.servlets;
 
+import com.google.sps.config.Flags;
+import com.google.sps.fakeHandlers.FakeImageServlet;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -38,9 +40,13 @@ public class ImageServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String uploadUrl = blobstoreService.createUploadUrl("/data");
+    if (Flags.IS_TEST) {
+      FakeImageServlet.doGet(request, response);
+    } else {
+      String uploadUrl = blobstoreService.createUploadUrl("/data");
 
-    response.setContentType("text/html");
-    response.getWriter().println(uploadUrl);
+      response.setContentType("text/html");
+      response.getWriter().println(uploadUrl);
+    }
   }
 }
