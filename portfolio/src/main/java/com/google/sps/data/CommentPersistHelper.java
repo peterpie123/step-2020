@@ -130,18 +130,6 @@ public class CommentPersistHelper {
       datastore.put(entity);
     }
 
-    System.out.println("Entity: " + entity);
-    System.out.println(request.getParameterMap());
-    try {
-      BufferedReader reader = request.getReader();
-      reader.lines().forEach(s -> System.out.println(s));
-
-      System.out.println(request.getParts());
-    } catch (Exception e) {
-    }
-    System.out.println(request.getAttributeNames().nextElement().intern());
-    
-
     // Insert new comment at the beginning to preserve sort
     comments.add(0, Comment.fromEntity(entity));
   }

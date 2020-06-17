@@ -92,8 +92,6 @@ public class Comment implements Comparable<Comment> {
       blobKey = (BlobKey) entity.getProperty(COMMENT_PICTURE_BLOBKEY);
     }
 
-    System.out.println(name + " " + text);
-
     return new Comment(text, name, entity.getKey(), time, url, blobKey);
   }
 

@@ -196,7 +196,7 @@ function submitComment(formData) {
   return fetch(IMAGE_SERVLET_URL).then(response => response.text()).then(imageUploadUrl => {
     let request = new XMLHttpRequest();
     request.open('POST', imageUploadUrl, false); // False makes this request synchronous
-    request.setRequestHeader('Content-Type', 'multipart/form-data');
+//    request.setRequestHeader('Content-Type', 'multipart/form-data');
     request.send(formData);
   });
 }
