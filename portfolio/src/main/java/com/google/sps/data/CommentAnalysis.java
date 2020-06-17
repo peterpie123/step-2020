@@ -33,6 +33,7 @@ import com.google.cloud.vision.v1.Image;
 import com.google.cloud.vision.v1.ImageAnnotatorClient;
 import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
+import com.google.sps.config.Flags;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -53,11 +54,16 @@ public class CommentAnalysis {
    * exist.
    */
   public void analyzeImage(Comment comment) throws IOException {
-    // Don't use ifPresent since exceptions don't behave well with lambda expressions
-    if (comment.getBlobKey().isPresent()) {
-      byte[] imageBytes = getBlobBytes(comment.getBlobKey().get());
-      List<EntityAnnotation> labels = getImageLabels(imageBytes);
-      labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
+    if (Flags.IS_TEST) {
+      // Add dummy data
+      imageLabels.add(new ImageLabel(comment.getName(), 1));
+    } else {
+      // Don't use ifPresent since exceptions don't behave well with lambda expressions
+      if (comment.getBlobKey().isPresent()) {
+        byte[] imageBytes = getBlobBytes(comment.getBlobKey().get());
+        List<EntityAnnotation> labels = getImageLabels(imageBytes);
+        labels.stream().forEach(entity -> imageLabels.add(new ImageLabel(entity)));
+      }
     }
   }
 
@@ -71,8 +77,13 @@ public class CommentAnalysis {
 
   /** Attaches text analysis, reading from the given comment. */
   public void analyzeText(Comment comment) throws IOException {
-    try (LanguageServiceClient languageServiceClient = LanguageServiceClient.create()) {
-      analyzeText(comment, languageServiceClient);
+    if (Flags.IS_TEST) {
+      // Send dummy data
+      this.sentimentScore = 4;
+    } else {
+      try (LanguageServiceClient languageServiceClient = LanguageServiceClient.create()) {
+        analyzeText(comment, languageServiceClient);
+      }
     }
   }
 

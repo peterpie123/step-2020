@@ -19,6 +19,7 @@ import javax.annotation.Nullable;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
+import com.google.sps.config.Flags;
 import org.apache.commons.lang3.StringUtils;
 
 /** Represents a single comment from a user. */
@@ -33,6 +34,9 @@ public class Comment implements Comparable<Comment> {
   static final String COMMENT_PICTURE_URL = "picture";
   /** Key for the attached image. */
   static final String COMMENT_PICTURE_BLOBKEY = "blobkey";
+
+  /** Used only for test instances - it assigns IDs without the need of a database */
+  private static int idCounter = 0;
 
   /** Text of the comment. */
   private final String text;
@@ -58,9 +62,13 @@ public class Comment implements Comparable<Comment> {
     this.name = name;
     this.timestamp = timestamp;
     this.key = key;
-    this.id = key.getId();
     this.imageUrl = Optional.ofNullable(imageUrl);
     this.blobKey = Optional.ofNullable(blobKey);
+    if (Flags.IS_TEST) {
+      this.id = idCounter++;
+    } else {
+      this.id = key.getId();
+    }
   }
 
   /** Create a comment with the current time as creation date. */
@@ -83,6 +91,8 @@ public class Comment implements Comparable<Comment> {
     if (entity.hasProperty(COMMENT_PICTURE_BLOBKEY)) {
       blobKey = (BlobKey) entity.getProperty(COMMENT_PICTURE_BLOBKEY);
     }
+
+    System.out.println(name + " " + text);
 
     return new Comment(text, name, entity.getKey(), time, url, blobKey);
   }

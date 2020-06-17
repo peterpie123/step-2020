@@ -15,7 +15,6 @@
 package com.google.sps.servlets;
 
 import com.google.sps.config.Flags;
-import com.google.sps.fakeHandlers.FakeImageServlet;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -29,23 +28,29 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 public class ImageServlet extends HttpServlet {
   private BlobstoreService blobstoreService;
 
+  public ImageServlet() {
+
+  }
+
   ImageServlet(BlobstoreService blobstoreService) {
     this.blobstoreService = blobstoreService;
   }
 
   @Override
   public void init() {
-    blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+    if (!Flags.IS_TEST) {
+      blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+    }
   }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    response.setContentType("text/html");
     if (Flags.IS_TEST) {
-      FakeImageServlet.doGet(request, response);
+      response.getWriter().println("/data");
     } else {
       String uploadUrl = blobstoreService.createUploadUrl("/data");
 
-      response.setContentType("text/html");
       response.getWriter().println(uploadUrl);
     }
   }

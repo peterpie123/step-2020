@@ -14,9 +14,8 @@
 
 package com.google.sps.servlets;
 
-import com.google.sps.config.Flags;
-import java.util.Optional;
 import java.io.IOException;
+import java.util.Optional;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.sps.data.Comment;
 import com.google.sps.data.CommentAnalysis;
 import com.google.sps.data.CommentPersistHelper;
-import com.google.sps.fakeHandlers.FakeAnalyzeServlet;
 
 /**
  * Analyzes the posted image with GCloud vision. Will eventually also analyze the comment sentiment.
@@ -36,6 +34,10 @@ public class AnalyzeServlet extends HttpServlet {
   private static final String COMMENT_ID = "id";
 
   private static CommentPersistHelper commentStore;
+
+  public AnalyzeServlet() {
+
+  }
 
   AnalyzeServlet(CommentPersistHelper commentStore) {
     this.commentStore = commentStore;
@@ -66,10 +68,6 @@ public class AnalyzeServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    if(Flags.IS_TEST) {
-      FakeAnalyzeServlet.doPost(request, response);
-    } else {
-      doPost(request, response, new CommentAnalysis());
-    }
+    doPost(request, response, new CommentAnalysis());
   }
 }

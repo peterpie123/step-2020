@@ -14,6 +14,7 @@
 
 package com.google.sps.data;
 
+import java.io.BufferedReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import com.google.appengine.api.images.ImagesServiceFactory;
 import com.google.appengine.api.images.ServingUrlOptions;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.google.sps.config.Flags;
 
 /**
  * Keeps track of persisted comments with ability to add/remove comments. This is a singleton.
@@ -65,7 +67,9 @@ public class CommentPersistHelper {
   public static CommentPersistHelper getInstance() {
     if (instance == null) {
       instance = new CommentPersistHelper();
-      instance.loadComments();
+      if (!Flags.IS_TEST) {
+        instance.loadComments();
+      }
     }
     return instance;
   }
@@ -83,6 +87,10 @@ public class CommentPersistHelper {
    * Returns the BlobKey that points to the file uploaded by the user.
    */
   private static Optional<BlobKey> getBlobKey(HttpServletRequest request) {
+    if (Flags.IS_TEST) {
+      return Optional.empty();
+    }
+
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");
@@ -112,11 +120,27 @@ public class CommentPersistHelper {
     entity.setProperty(Comment.COMMENT_NAME, request.getParameter(Comment.COMMENT_NAME));
     entity.setProperty(Comment.COMMENT_TIMESTAMP, System.currentTimeMillis());
 
-    getUploadedFileUrl(request).ifPresent(url -> entity.setProperty(Comment.COMMENT_PICTURE_URL, url));
-    getBlobKey(request).ifPresent(blobKey -> entity.setProperty(Comment.COMMENT_PICTURE_BLOBKEY, blobKey));
+    getUploadedFileUrl(request)
+        .ifPresent(url -> entity.setProperty(Comment.COMMENT_PICTURE_URL, url));
+    getBlobKey(request)
+        .ifPresent(blobKey -> entity.setProperty(Comment.COMMENT_PICTURE_BLOBKEY, blobKey));
+
+    if (!Flags.IS_TEST) {
+      // Store the comment so it persists
+      datastore.put(entity);
+    }
+
+    System.out.println("Entity: " + entity);
+    System.out.println(request.getParameterMap());
+    try {
+      BufferedReader reader = request.getReader();
+      reader.lines().forEach(s -> System.out.println(s));
+
+      System.out.println(request.getParts());
+    } catch (Exception e) {
+    }
+    System.out.println(request.getAttributeNames().nextElement().intern());
     
-    // Store the comment so it persists
-    datastore.put(entity);
 
     // Insert new comment at the beginning to preserve sort
     comments.add(0, Comment.fromEntity(entity));
@@ -129,14 +153,17 @@ public class CommentPersistHelper {
       if (comment.getId() == id) {
         // Remove the comment from persistent storage and the comments list
         comments.remove(i);
-        datastore.delete(comment.getKey());
 
-        // Remove the comment's image, if it exists
-        comment.getBlobKey().ifPresent(blobKey -> {
-          BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-          blobstoreService.delete(blobKey);
-        });
-        break;
+        if (!Flags.IS_TEST) {
+          datastore.delete(comment.getKey());
+
+          // Remove the comment's image, if it exists
+          comment.getBlobKey().ifPresent(blobKey -> {
+            BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+            blobstoreService.delete(blobKey);
+          });
+          break;
+        }
       }
     }
   }
@@ -154,6 +181,10 @@ public class CommentPersistHelper {
    * Returns a URL that points to the uploaded file.
    */
   private Optional<String> getUploadedFileUrl(HttpServletRequest request) {
+    if (Flags.IS_TEST) {
+      return Optional.empty();
+    }
+
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");

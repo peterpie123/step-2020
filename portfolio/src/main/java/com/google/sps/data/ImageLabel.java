@@ -13,6 +13,11 @@ public class ImageLabel {
     score = annotation.getScore();
   }
 
+  public ImageLabel(String description, float score) {
+    this.description = description;
+    this.score = score;
+  }
+
   public String getDescription() {
     return description;
   }

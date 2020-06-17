@@ -17,5 +17,5 @@ package com.google.sps.config;
 /** Contains boolean flag whether running tests or not. */
 public class Flags {
   /** True when running a test, false otherwise. */
-  public static final boolean IS_TEST = false;
+  public static final boolean IS_TEST = true;
 }
