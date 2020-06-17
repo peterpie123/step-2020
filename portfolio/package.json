@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "test": "mocha --recursive ./src/test"
+  },
+  "directories": {
+    "test": ".src/test/javascript"
+  },
+  "dependencies": {
+    "@babel/core": "^7.10.2",
+    "@babel/polyfill": "^7.10.1",
+    "@babel/preset-env": "^7.10.2",
+    "@babel/register": "^7.10.1",
+    "babel-polyfill": "^6.26.0",
+    "chromedriver": "^83.0.0",
+    "mocha": "^8.0.1",
+    "selenium-webdriver": "^4.0.0-alpha.7"
+  }
+}
