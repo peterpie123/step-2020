@@ -41,32 +41,35 @@ describe('Selenium tests', () => {
     submitButton = await driver.findElement(By.id('comment-submit'));
   });
 
+  /** Uses the comment creation form to create the given comment */
+  async function createComment(name, text) {
+    await nameField.sendKeys(name);
+    await textField.sendKeys(text);
+    await submitButton.click();
+  }
+
   describe('Comment management', () => {
     it('should create a comment with just a name and text', async () => {
       let name = 'Test name';
       let text = 'Test comment';
-      await nameField.sendKeys(name);
-      await textField.sendKeys(text);
-      await submitButton.click();
+      await createComment(name, text);
 
       // Really not good practice, but there is a delay between posting a comment and it 
       // appearing in the database
       await wait();
       let newNum = (await getComments()).length;
       // New comment should exist
-      assert.strictEqual(true, await hasComment(name, text));
+      assert.strictEqual(await hasComment(name, text), true);
     });
 
     it('should be able to delete a comment', async () => {
       let name = 'Temp name';
       let text = 'Temp comment';
-      await nameField.sendKeys(name);
-      await textField.sendKeys(text);
-      await submitButton.click();
+      await createComment(name, text);
 
       await wait();
       // New comment should exist
-      assert.strictEqual(true, await hasComment(name, text));
+      assert.strictEqual(await hasComment(name, text), true);
 
       let commentToggle = await driver.findElement(By.className('comment-toggle'));
       await commentToggle.click();
@@ -75,15 +78,31 @@ describe('Selenium tests', () => {
 
       await wait();
       // New comment should not exist
-      assert.strictEqual(false, await hasComment(name, text));
+      assert.strictEqual(await hasComment(name, text), false);
+    });
+
+    it('should filter correctly', async () => {
+      for (let i = 0; i < 2; i++) {
+        await createComment('Filter name', 'Comment ' + i);
+      }
+      await wait();
+
+      let filter = await driver.findElement(By.id('comment-filter'));
+      filter.sendKeys('1');
+      let refresh = await driver.findElement(By.id('comment-refresh-button'));
+      refresh.click();
+      await wait();
+
+      // Make sure 'Comment 1' is present
+      let text = await (await driver.findElement(By.css('.comment-text p:last-of-type'))).getText();
+      assert.strictEqual(text, 'Comment 1');
+      filter.clear();
     });
   });
 
   describe('Comment-analytics', () => {
     before(async () => {
-      await nameField.sendKeys('Analytics name');
-      await textField.sendKeys('Analytics text');
-      await submitButton.click();
+      await createComment('Analytics name', 'Analytics text');
     });
 
     it('should be able to display comment analysis', async () => {
@@ -95,7 +114,7 @@ describe('Selenium tests', () => {
       let text = await (await analysis.findElement(By.tagName('p'))).getText();
 
       // Should be same number after creating and deleting a comment
-      assert.strictEqual('Sentiment score: 4', text);
+      assert.strictEqual(text, 'Sentiment score: 4');
     });
   });
 
