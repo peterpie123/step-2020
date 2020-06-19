@@ -14,8 +14,8 @@
 
 package com.google.sps.servlets;
 
-import java.util.Optional;
 import java.io.IOException;
+import java.util.Optional;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +34,10 @@ public class AnalyzeServlet extends HttpServlet {
   private static final String COMMENT_ID = "id";
 
   private static CommentPersistHelper commentStore;
+
+  public AnalyzeServlet() {
+
+  }
 
   AnalyzeServlet(CommentPersistHelper commentStore) {
     this.commentStore = commentStore;

@@ -34,7 +34,7 @@ public class ImageServletTest {
   @Test
   public void testUploadImage() throws IOException {
     BlobstoreService service = mock(BlobstoreService.class);
-    String imageUrl = "/upload-new-image";
+    String imageUrl = "/data";
     when(service.createUploadUrl(anyString())).thenReturn(imageUrl);
 
     ImageServlet imageServlet = new ImageServlet(service);

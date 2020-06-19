@@ -65,6 +65,11 @@
       <version>2.10.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-server</artifactId>
+      <version>3.141.59</version>
+    </dependency>
 
   </dependencies>
 
@@ -78,7 +83,7 @@
         <version>2.2.0</version>
         <configuration>
           <!-- TODO: set project ID. -->
-          <deploy.projectId>pgeertsema-step-2020</deploy.projectId>
+          <deploy.projectId>pgeertsema-step-2020-api</deploy.projectId>
           <deploy.version>1</deploy.version>
           <port>8081</port>
         </configuration>
